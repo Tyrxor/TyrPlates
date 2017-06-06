@@ -49,8 +49,8 @@ function auraDB:ApplyAura(srcGUID, destGUID, destName, spellId)
 			dest = destGUID
 			crowdControlDB = spellDB.PVECC
 			duration = spellDB.auraInfo[spellId]
-			if not auraCounter[dest] then auraCounter[dest] = 0 end
-			auraCounter[dest] = auraCounter[dest] + 1
+			if not auraCounter[destName] then auraCounter[destName] = 0 end
+			auraCounter[destName] = auraCounter[destName] + 1
 		end
 		
 		if not duration then
@@ -131,45 +131,36 @@ function auraDB:applyInterruptAura(destGUID, destName, spell, school)
 end
 
 function auraDB:RemoveAura(destGUID, destName, spellId, aura)
-	if auraDB[destName] and auraDB[destName][aura] and tyrPlates:IsPlayerOrPetGUID(destGUID) then
+
+	if tyrPlates:IsPlayerOrPetGUID(destGUID) then
+		dest = destName
+		crowdControlDB = spellDB.CC
+	else
+		dest = destGUID
+		crowdControlDB = spellDB.PVECC
+		auraDB[dest][aura] = nil
+		auraCounter[destName] = auraCounter[destName] - 1
+	end
+
+	if auraDB[dest] and auraDB[dest][aura] then
+	
 		if spellDB.castSpeedChange[aura] then
-			castbarDB.castingSpeedDB[destName] = castbarDB.castingSpeedDB[destName] / spellDB.castSpeedChange[aura]
+			castbarDB.castingSpeedDB[dest] = castbarDB.castingSpeedDB[dest] / spellDB.castSpeedChange[aura]
 		end	
 
 		if tyrPlates_config["pvp"] or not spellDB.ownAuraFilter[aura] or IsOwnAura(aura, destName, destGUID) then
-			auraDB[destName][aura] = nil
+			auraDB[dest][aura] = nil
 			
-			if spellDB.CC[aura] then
-				local group = spellDB.CC[aura]
+			if crowdControlDB[aura] then
+				local group = crowdControlDB[aura]
 				if group == "none" then
 					group = "DR"..aura
 				end
 
-				if auraDB.DRDB[destName] and auraDB.DRDB[destName][group] then
-					auraDB.DRDB[destName][group.."timer"] = GetTime()
+				if auraDB.DRDB[dest] and auraDB.DRDB[dest][group] then
+					auraDB.DRDB[dest][group.."timer"] = GetTime()
 				end
 			end
-			
-		
-		end
-	elseif auraDB[destGUID] and auraDB[destGUID][aura] then
-
-		if tyrPlates_config["pvp"] == true or not spellDB.ownAuraFilter[aura] or IsOwnAura(aura, destName, destGUID) then
-			auraDB[destGUID][aura] = nil
-			auraCounter[destName] = auraCounter[destName] - 1
-			--ace:print("counter on "..destName.." is "..auraCounter[destName])
-			
-			if spellDB.CC[aura] then
-				local group = spellDB.CC[aura]
-				if group == "none" then
-					group = "DR"..aura
-				end
-
-				if auraDB.DRDB[destGUID] and auraDB.DRDB[destGUID][group] then
-					auraDB.DRDB[destGUID][group.."timer"] = GetTime()
-				end
-			end
-			
 		end
 	end
 end

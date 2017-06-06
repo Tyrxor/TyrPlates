@@ -86,19 +86,19 @@ pushbackTracker:SetScript("OnEvent", function()
 	if not castDB[unitName] then return end
 	
 	local startTime = castDB[unitName]["startTime"]
-	local castingTime = currentTime-startTime
 	local pushback = 1 - castDB[unitName]["pushbackCounter"]*0.2 
-	
-	-- make sure the base cast time isn't overtaken
-	if pushback > castingTime then
-		pushback = castingTime
-	end
 	
 	-- reduce cast time for channels
 	-- increase cast time for casts
 	if spellDB.channelDuration[spell] then
 		castDB[unitName]["startTime"] = startTime - pushback
 	else
+	
+		-- make sure the current cast progress isn't set under zero
+		local castProgress = currentTime-startTime
+		if pushback > castProgress then
+			pushback = castProgress
+		end
 		castDB[unitName]["startTime"] = startTime + pushback
 	end
 	

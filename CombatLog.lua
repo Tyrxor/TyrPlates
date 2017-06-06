@@ -8,7 +8,7 @@ local auraDB = tyrPlates.auraDB
 combatlog:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 combatlog:SetScript("OnEvent", function()
 	--ace:print(arg1)		--timestamp
-		--ace:print(arg2)	--event
+		ace:print(arg2)	--event
 		--ace:print(arg3)	--srcGUID
 		--ace:print(arg4)	--srcName
 	--ace:print(arg5)		--srcFlags
@@ -144,13 +144,15 @@ combatlog:SetScript("OnEvent", function()
 		-- if the aura was created by a channeled spell(e.g. mind flay), interrupt the cast of the channeler
 		if spellDB.channelDuration[spellName] or spellDB.channelWithTarget[spellName]then
 			if not spellDB.channelWithTarget[spellName] then
-				castbarDB.castDB[destGUID] = nil
+				castbarDB.castDB[destName] = nil
 				castbarDB.castDB[destGUID] = nil
 			else
 				if castbarDB.channelerDB[destGUID] and castbarDB.channelerDB[destGUID][spellName] then
 					castbarDB.castDB[castbarDB.channelerDB[destGUID][spellName]] = nil
+					castbarDB.channelerDB[destGUID][spellName] = nil
 				elseif castbarDB.channelerDB[destName] and castbarDB.channelerDB[destName][spellName] then
 					castbarDB.castDB[castbarDB.channelerDB[destName][spellName]] = nil
+					castbarDB.channelerDB[destName][spellName] = nil
 				end
 			end
 		end	  
