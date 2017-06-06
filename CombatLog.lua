@@ -8,7 +8,7 @@ local auraDB = tyrPlates.auraDB
 combatlog:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 combatlog:SetScript("OnEvent", function()
 	--ace:print(arg1)		--timestamp
-		ace:print(arg2)	--event
+		--ace:print(arg2)	--event
 		--ace:print(arg3)	--srcGUID
 		--ace:print(arg4)	--srcName
 	--ace:print(arg5)		--srcFlags
@@ -147,6 +147,7 @@ combatlog:SetScript("OnEvent", function()
 				castbarDB.castDB[destName] = nil
 				castbarDB.castDB[destGUID] = nil
 			else
+				-- check who was the caster of the aura and delete his cast from the db + delete entry from channelerDB
 				if castbarDB.channelerDB[destGUID] and castbarDB.channelerDB[destGUID][spellName] then
 					castbarDB.castDB[castbarDB.channelerDB[destGUID][spellName]] = nil
 					castbarDB.channelerDB[destGUID][spellName] = nil
