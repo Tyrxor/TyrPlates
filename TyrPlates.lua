@@ -9,11 +9,10 @@ end)
 tyrPlates.inCombat = false
 
 -- tracks if player is in combat
-tyrPlates.combat = CreateFrame("Frame", nil, UIParent)
-tyrPlates.combat:RegisterEvent("PLAYER_REGEN_ENABLED")
-tyrPlates.combat:RegisterEvent("PLAYER_REGEN_DISABLED")
-tyrPlates.combat:SetScript("OnEvent", function()
-
+tyrPlates.combatTracker = CreateFrame("Frame", nil, UIParent)
+tyrPlates.combatTracker:RegisterEvent("PLAYER_REGEN_ENABLED")
+tyrPlates.combatTracker:RegisterEvent("PLAYER_REGEN_DISABLED")
+tyrPlates.combatTracker:SetScript("OnEvent", function()
 	if event == "PLAYER_REGEN_ENABLED" then
 		tyrPlates.inCombat = false
 		tyrPlates:ClearTable(tyrPlates.healthDiffDB)
@@ -22,26 +21,14 @@ tyrPlates.combat:SetScript("OnEvent", function()
 	end
 end)
 
+-- checks if the given guid is the guid of a pet or player
 function tyrPlates:IsPlayerOrPetGUID(guid)
-	--ace:print(guid)
 	local first3Numbers = tonumber("0x"..strsub(guid, 3,5))
 	if not first3Numbers then return false end
 	return bit.band(first3Numbers,0x00F) == 0 or bit.band(first3Numbers,0x00F) == 4
 end
 
-function tyrPlates:IsPetGUID(guid)
-	local first3Numbers = tonumber("0x"..strsub(guid, 3,5))
-	if not first3Numbers then return false end
-	return bit.band(first3Numbers,0x00F) == 4
-end
---[[
-function tyrPlates:IsNPCGUID(guid)
-	local first3Numbers = tonumber("0x"..strsub(guid, 3,5))
-	if not first3Numbers then return false end
-	return bit.band(first3,first3Numbers) == 3
-end
-]]
-
+-- check if the given guid is the guid of the player
 function tyrPlates:IsOwnGUID(guid)
 	return guid == UnitGUID("player")
 end
