@@ -47,7 +47,7 @@ function auraDB:ApplyAura(srcGUID, destGUID, destName, spellId)
 			duration = spellDB.auraInfoPvP[spellId] or spellDB.auraInfo[spellId]			
 		else
 			dest = destGUID
-			crowdControlDB = spellDB.PVECC
+			crowdControlDB = spellDB.PvECC
 			duration = spellDB.auraInfo[spellId]
 			if not auraCounter[destName] then auraCounter[destName] = 0 end
 			auraCounter[destName] = auraCounter[destName] + 1
@@ -102,6 +102,7 @@ function checkDR(crowdControlDB, aura, dest, currentTime, duration)
 		end
 							
 		local DRCounter = auraDB.DRDB[dest][group]
+		ace:print(DRCounter)
 		if DRCounter == 1 then
 			duration = duration*0.5		
 		elseif DRCounter == 0 then
@@ -137,7 +138,7 @@ function auraDB:RemoveAura(destGUID, destName, spellId, aura)
 		crowdControlDB = spellDB.CC
 	else
 		dest = destGUID
-		crowdControlDB = spellDB.PVECC
+		crowdControlDB = spellDB.PvECC
 		auraDB[dest][aura] = nil
 		auraCounter[destName] = auraCounter[destName] - 1
 	end
