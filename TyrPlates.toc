@@ -1,0 +1,16 @@
+## Interface: 20400
+## Title: TyrPlates
+## Author: Thomas Fessel, 2017
+## Notes: Nameplates with castbars and auras
+## Version: 1.0
+## SavedVariables: TyrPlatesDB, tyrPlates_config
+
+TyrPlates.lua
+SpellDB.lua
+Nameplate.lua
+NameplateUpdater.lua
+CastbarDB.lua
+AuraDB.lua
+CombatLog.lua
+HealthDiffDB.lua
+Config.lua
