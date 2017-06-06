@@ -14,31 +14,33 @@ local channelerDB = castbarDB.channelerDB
 
 -- adds a cast or channel to the castDB
 function castbarDB:addCast(srcGUID, srcName, spellId, spellSchool)
-	local spellName, _, spellIcon, _, _, _, castTime = GetSpellInfo(spellId)
-	
-	-- if the caster is a player, save cast by name otherwise save cast by GUID
-	if tyrPlates:IsPlayerOrPetGUID(srcGUID) then
-	
-		-- GetSpellInfo doesn't seem to return a castTime value for channeled spells, 
-		-- therefore if it is a channel, set castTime to the duration stored in our spellDB
-		if spellDB.channelDuration[spellName] then
-			castTime = spellDB.channelDuration[spellName]*1000
-		end
 
+	local spellName, _, spellIcon, _, _, _, castTime = GetSpellInfo(spellId)
+	local source
+	
+	-- GetSpellInfo doesn't seem to return a castTime value for channeled spells, 
+	-- therefore if it is a channel, set castTime to the duration stored in our spellDB
+	if spellDB.channelDuration[spellName] then
+		castTime = spellDB.channelDuration[spellName]*1000
+	end
+	
+	if tyrPlates:IsPlayerOrPetGUID(srcGUID) then	
 		-- reduce cast time if the casted spell can be reduced by talents (e.g. fireball, shadowbolt)
 		if spellDB.reducedCastTime[spellName] then
 			castTime = castTime - spellDB.reducedCastTime[spellName]*1000
 		end
-	
-		-- change cast time depending on the casters casting speed
-		if castingSpeedDB[srcName] then
-			castTime = castTime * castingSpeedDB[srcName]
-		end
-		
-		castDB[srcName] = {cast = spellName, startTime = GetTime(), castTime = castTime/1000, icon = spellIcon, school = spellSchool, pushbackCounter = 0}
+		source = srcName
 	else
-		castDB[srcGUID] = {cast = spellName, startTime = GetTime(), castTime = castTime/1000, icon = spellIcon, school = spellSchool, pushbackCounter = 0}
+		source = srcGUID
 	end
+
+	-- change cast time depending on the casters casting speed
+	if castingSpeedDB[source] then
+		castTime = castTime * castingSpeedDB[source]
+	end
+	
+	-- add cast
+	castDB[source] = {cast = spellName, startTime = GetTime(), castTime = castTime/1000, icon = spellIcon, school = spellSchool, pushbackCounter = 0}
 end
 
 -- stop a cast or channel by deleting it from the castDB
@@ -63,13 +65,22 @@ function castbarDB:addChanneler(srcGUID, srcName, destGUID, destName, spell)
 	if not channelerDB[dest] then
 		channelerDB[dest] = {}
 	end
-	if srcGUID and tyrPlates:IsPlayerOrPetGUID(srcGUID) then
+	if tyrPlates:IsPlayerOrPetGUID(srcGUID) then
 		channelerDB[dest][spell] = srcName
 	else
 		channelerDB[dest][spell] = srcGUID
 	end
 end
 
+-- tracks if a unit stops a cast by themselves (e.g. moving, press esc) and deletes this cast from the castDB
+castStopTracker = CreateFrame("Frame")
+castStopTracker:RegisterEvent("UNIT_SPELLCAST_STOP")
+castStopTracker:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
+castStopTracker:SetScript("OnEvent", function()
+	local unit = arg1
+	local unitName = UnitName(unit)
+	castDB[unitName] = nil
+end)
 
 -- change cast time of a unit if he recieves a pushback
 pushbackTracker = CreateFrame("Frame")
@@ -78,8 +89,7 @@ pushbackTracker:RegisterEvent("UNIT_SPELLCAST_CHANNEL_UPDATE") -- triggers after
 pushbackTracker:SetScript("OnEvent", function()
 
 	local unit = arg1
-	local spell = arg2
-	
+	local spell = arg2	
 	local currentTime = GetTime()
 	local unitName = UnitName(unit)
 	
@@ -93,7 +103,6 @@ pushbackTracker:SetScript("OnEvent", function()
 	if spellDB.channelDuration[spell] then
 		castDB[unitName]["startTime"] = startTime - pushback
 	else
-	
 		-- make sure the current cast progress isn't set under zero
 		local castProgress = currentTime-startTime
 		if pushback > castProgress then
@@ -107,14 +116,4 @@ pushbackTracker:SetScript("OnEvent", function()
 	if castDB[unitName]["pushbackCounter"] > 4 then
 		castDB[unitName]["pushbackCounter"] = 4
 	end
-end)
-
--- tracks if a unit stops a cast by themselves (e.g. moving, press esc) and deletes this cast from the castDB
-castStopTracker = CreateFrame("Frame")
-castStopTracker:RegisterEvent("UNIT_SPELLCAST_STOP")
-castStopTracker:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
-castStopTracker:SetScript("OnEvent", function()
-	local unit = arg1
-	local unitName = UnitName(unit)
-	castDB[unitName] = nil
 end)
