@@ -147,6 +147,7 @@ combatlog:SetScript("OnEvent", function()
 		auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 		if tyrPlates.auraCounter[destName] then
 			tyrPlates.auraCounter[destName] = tyrPlates.auraCounter[destName] - 1
+			--ace:print(tyrPlates.auraCounter[destName])
 			--ace:print("counter on "..destName.." is "..tyrPlates.auraCounter[destName])
 		end
 		return

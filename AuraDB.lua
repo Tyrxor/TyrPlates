@@ -8,7 +8,7 @@ local spellDB = tyrPlates.spellDB
 local DRDB = {}
 
 --applys auras to players and npcs
-function auraDB:ApplyAura(srcGUID, destGUID, destName, spellId, currentTime)
+function auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 	
 	-- can sometimes be the case if the spell has no target (e.g. cloak of shadows)
 	if not destName then return end
@@ -52,7 +52,7 @@ function auraDB:ApplyAura(srcGUID, destGUID, destName, spellId, currentTime)
 			
 			-- increase auraCounter for this unit
 			auraCounter[destName] = auraCounter[destName] + 1
-			ace:print(auraCounter[destName])
+			--ace:print(auraCounter[destName])
 		end
 		
 		-- inform the user that the aura has no entry in the auraDurationDB
@@ -152,7 +152,7 @@ function auraDB:RemoveAura(destGUID, destName, spellId, aura, currentTime)
 		
 		-- increase auraCounter for this unit
 		auraCounter[destName] = auraCounter[destName] - 1
-		ace:print(auraCounter[destName])
+		--ace:print(auraCounter[destName])
 	end
 
 	-- check if the unit even has the removed aura in our DB
@@ -186,18 +186,23 @@ end
 
 -- removes all auras on a unit after it's death
 function auraDB:RemoveAllAuras(destGUID, destName)
-	if auraDB[destName] and tyrPlates:IsPlayerOrPetGUID(destGUID) then
+	if tyrPlates:IsPlayerOrPetGUID(destGUID) then
 		tyrPlates:ClearTable(auraDB[destName])
-		tyrPlates:ClearTable(DRDB[destName])
+		if DRDB[destName] then
+			tyrPlates:ClearTable(DRDB[destName])
+		end
 	elseif auraDB[destGUID] then
 		for aura in pairs(auraDB[destGUID]) do
 			auraDB[destGUID][aura] = nil
-			tyrPlates:ClearTable(DRDB[destGUID])
 			auraCounter[destName] = auraCounter[destName] - 1
-			ace:print(auraCounter[destName])
+			--ace:print(auraCounter[destName])
 			--ace:print("counter on "..destName.." is "..auraCounter[destName])
 		end
 		auraDB[destGUID] = nil
+		
+		if DRDB[destGUID] then
+			tyrPlates:ClearTable(DRDB[destGUID])
+		end
 	end  
 end
 
