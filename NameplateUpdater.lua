@@ -13,17 +13,7 @@ function tyrPlates:IsTarget(frame)
 	local healthbarBorder, castbarBorder, spellIconRegion, glow, name, level, bossIconRegion, raidIconRegion = frame:GetRegions()
 	return frame:IsShown() and frame:GetAlpha() == 1 and UnitExists("target") or false
 end
---[[
-function tyrPlates:IsMouseover(frame)
 
-	local _, _, _, glow, _, _, _, _ = this:GetRegions()
-	if glow and glow.IsShown then	--glow:IsShown()?
-		return glow:IsShown() and true or false
-	end
-	
-	return nil
-end
-]]--
 function tyrPlates:tablelength(auratable, isFriendlyPlayer)
 	local count = 0
 	for aura in pairs(auratable) do 
@@ -155,9 +145,10 @@ function tyrPlates:UpdateNameplate()
 end
 
 
-function tyrPlates:UpdateDebuffsIdentifier(frame, healthbar, Identifier)
+function tyrPlates:UpdateDebuffsIdentifier(frame, healthbar, Identifier, currentTime)
 
-	if tyrPlates.auraDB[Identifier] then		
+	if tyrPlates.auraDB[Identifier] then
+		local currentTime = GetTime()
 		local j, k = 1, 1
 		local num = tyrPlates:tablelength(tyrPlates.auraDB[Identifier], frame.isFriendlyPlayer)
 		for Aura in pairs(tyrPlates.auraDB[Identifier]) do
@@ -178,7 +169,7 @@ function tyrPlates:UpdateDebuffsIdentifier(frame, healthbar, Identifier)
 				
 				local startTime = tyrPlates.auraDB[Identifier][Aura]["startTime"]
 				local duration = tonumber(tyrPlates.auraDB[Identifier][Aura]["duration"])
-				local timeLeft = duration+startTime-GetTime()
+				local timeLeft = duration+startTime-currentTime
 				
 				if timeLeft < 0 or timeLeft > 60 then --don't show timer
 					frame.debuffs[j].counter:SetText("")
@@ -197,7 +188,7 @@ function tyrPlates:UpdateDebuffsIdentifier(frame, healthbar, Identifier)
 					frame.debuffs[j].counter:SetTextColor( r, g, b )
 							
 					if timeLeft < 3 then
-						local f = GetTime() % 1
+						local f = currentTime % 1
 						if f > 0.5 then 
 							f = 1 - f
 						end
@@ -311,17 +302,19 @@ function tyrPlates:UpdateColors(frame, name, healthbar)
 end
 
 function tyrPlates:UpdateCastbarByUnit(unit, healthbar)
+
+	local currentTime = GetTime()
 	if tyrPlates.castbarDB.castDB[unit] and tyrPlates.castbarDB.castDB[unit]["cast"] then
-		if tyrPlates.castbarDB.castDB[unit]["startTime"] + tyrPlates.castbarDB.castDB[unit]["castTime"] <= GetTime() then
+		if tyrPlates.castbarDB.castDB[unit]["startTime"] + tyrPlates.castbarDB.castDB[unit]["castTime"] <= currentTime then
 			tyrPlates.castbarDB.castDB[unit] = nil
 			healthbar.castbar:Hide()
 		else
 			if spellDB.channelDuration[tyrPlates.castbarDB.castDB[unit]["cast"]] or spellDB.channelWithTarget[tyrPlates.castbarDB.castDB[unit]["cast"]] then
 				healthbar.castbar:SetMinMaxValues(0, tyrPlates.castbarDB.castDB[unit]["castTime"])
-				healthbar.castbar:SetValue(tyrPlates.castbarDB.castDB[unit]["castTime"] - (GetTime() -  tyrPlates.castbarDB.castDB[unit]["startTime"]))
+				healthbar.castbar:SetValue(tyrPlates.castbarDB.castDB[unit]["castTime"] - (currentTime -  tyrPlates.castbarDB.castDB[unit]["startTime"]))
 			else
 				healthbar.castbar:SetMinMaxValues(0,  tyrPlates.castbarDB.castDB[unit]["castTime"])
-				healthbar.castbar:SetValue(GetTime() -  tyrPlates.castbarDB.castDB[unit]["startTime"])
+				healthbar.castbar:SetValue(currentTime -  tyrPlates.castbarDB.castDB[unit]["startTime"])
 			end
 			
 			if healthbar.castbar.spell then
@@ -369,6 +362,7 @@ end
 
 function tyrPlates:UpdateAuras(identifier, unit)
 
+	local currentTime = GetTime()
 	local aurasOnEnemy = {}
 	local i = 1
 	local name, _, _, _, _, duration, timeLeft  =  UnitDebuff(unit, i)
@@ -381,7 +375,7 @@ function tyrPlates:UpdateAuras(identifier, unit)
 	while name do
 		if tyrPlates.auraDB[identifier] and tyrPlates.auraDB[identifier][name] then
 			if timeLeft then
-				local timediff = timeLeft - (tyrPlates.auraDB[identifier][name]["duration"]-(GetTime()-tyrPlates.auraDB[identifier][name]["startTime"]))
+				local timediff = timeLeft - (tyrPlates.auraDB[identifier][name]["duration"]-(currentTime-tyrPlates.auraDB[identifier][name]["startTime"]))
 				tyrPlates.auraDB[identifier][name]["startTime"] = tyrPlates.auraDB[identifier][name]["startTime"] + timediff
 			end
 			aurasOnEnemy[name] = true
@@ -399,7 +393,7 @@ function tyrPlates:UpdateAuras(identifier, unit)
 			local auraType = spellDB.ownAuraFilter[name] or spellDB.auraFilter[name] 
 			if not tyrPlates.auraDB[identifier] then tyrPlates.auraDB[identifier] = {} end
 			if timeLeft then
-				tyrPlates.auraDB[identifier][name] = {startTime = GetTime(), duration = timeLeft, icon = auraIcon, auratype = auraType}
+				tyrPlates.auraDB[identifier][name] = {startTime = currentTime, duration = timeLeft, icon = auraIcon, auratype = auraType}
 			else
 				tyrPlates.auraDB[identifier][name] = {startTime = 0, duration = 0, icon = auraIcon, auratype = auraType}
 			end
@@ -414,7 +408,7 @@ function tyrPlates:UpdateAuras(identifier, unit)
 	while name do
 		if tyrPlates.auraDB[identifier] and tyrPlates.auraDB[identifier][name] then
 			if timeLeft then
-				local timediff = timeLeft - (tyrPlates.auraDB[identifier][name]["duration"]-(GetTime()-tyrPlates.auraDB[identifier][name]["startTime"]))
+				local timediff = timeLeft - (tyrPlates.auraDB[identifier][name]["duration"]-(currentTime-tyrPlates.auraDB[identifier][name]["startTime"]))
 				tyrPlates.auraDB[identifier][name]["startTime"] = tyrPlates.auraDB[identifier][name]["startTime"] + timediff
 			end
 			aurasOnEnemy[name] = true
@@ -432,7 +426,7 @@ function tyrPlates:UpdateAuras(identifier, unit)
 			local auraType = spellDB.ownAuraFilter[name] or spellDB.auraFilter[name] 
 			if not tyrPlates.auraDB[identifier] then tyrPlates.auraDB[identifier] = {} end
 			if timeLeft then
-				tyrPlates.auraDB[identifier][name] = {startTime = GetTime(), duration = timeLeft, icon = auraIcon, auratype = auraType}
+				tyrPlates.auraDB[identifier][name] = {startTime = currentTime, duration = timeLeft, icon = auraIcon, auratype = auraType}
 			else
 				tyrPlates.auraDB[identifier][name] = {startTime = 0, duration = 0, icon = auraIcon, auratype = auraType}
 			end

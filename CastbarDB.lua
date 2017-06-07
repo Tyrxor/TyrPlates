@@ -13,10 +13,10 @@ local castingSpeedDB = castbarDB.castingSpeedDB
 local channelerDB = castbarDB.channelerDB
 
 -- adds a cast or channel to the castDB
-function castbarDB:addCast(srcGUID, srcName, spellId, spellSchool)
+function castbarDB:addCast(srcGUID, srcName, spellId, spellSchool, currentTime)
 
-	local spellName, _, spellIcon, _, _, _, castTime = GetSpellInfo(spellId)
 	local source
+	local spellName, _, spellIcon, _, _, _, castTime = GetSpellInfo(spellId)
 	
 	-- GetSpellInfo doesn't seem to return a castTime value for channeled spells, 
 	-- therefore if it is a channel, set castTime to the duration stored in our spellDB
@@ -40,7 +40,7 @@ function castbarDB:addCast(srcGUID, srcName, spellId, spellSchool)
 	end
 	
 	-- add cast
-	castDB[source] = {cast = spellName, startTime = GetTime(), castTime = castTime/1000, icon = spellIcon, school = spellSchool, pushbackCounter = 0}
+	castDB[source] = {cast = spellName, startTime = currentTime, castTime = castTime/1000, icon = spellIcon, school = spellSchool, pushbackCounter = 0}
 end
 
 -- stop a cast or channel by deleting it from the castDB
@@ -88,9 +88,9 @@ pushbackTracker:RegisterEvent("UNIT_SPELLCAST_DELAYED")
 pushbackTracker:RegisterEvent("UNIT_SPELLCAST_CHANNEL_UPDATE") -- triggers after channeled spell is pushed back
 pushbackTracker:SetScript("OnEvent", function()
 
+	local currentTime = GetTime()
 	local unit = arg1
 	local spell = arg2	
-	local currentTime = GetTime()
 	local unitName = UnitName(unit)
 	
 	if not castDB[unitName] then return end
