@@ -8,15 +8,15 @@ local auraDB = tyrPlates.auraDB
 combatlog:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 combatlog:SetScript("OnEvent", function()
 	--ace:print(arg1)		--timestamp
-		--ace:print(arg2)	--event
+		ace:print(arg2)	--event
 		--ace:print(arg3)	--srcGUID
-		--ace:print(arg4)	--srcName
+		ace:print(arg4)	--srcName
 	--ace:print(arg5)		--srcFlags
 		--ace:print(arg6)	--destGUID
-	    --ace:print(arg7)	--destName
+	    ace:print(arg7)	--destName
 	--ace:print(arg8)		--destFlags
 	--ace:print(arg9)		--spellId
-		--ace:print(arg10)	--spellName
+		ace:print(arg10)	--spellName
 	--ace:print(arg11)		--spellschool
 	--ace:print(arg12)
 	--ace:print(arg13)
@@ -24,6 +24,8 @@ combatlog:SetScript("OnEvent", function()
 	--ace:print(arg15)
 	--ace:print("")
 
+	local currentTime = GetTime()
+	
 	-- the combatlog event
 	local event = arg2
 	
@@ -71,16 +73,15 @@ combatlog:SetScript("OnEvent", function()
 	end
    
     if event == "SPELL_CAST_START" then
-		castbarDB:addCast(srcGUID, srcName, spellId, spellSchool)
+		castbarDB:addCast(srcGUID, srcName, spellId, spellSchool, currentTime)
 		return
     end
 	
-	-- also includes spells without castTime
 	if event == "SPELL_CAST_SUCCESS" then
-		auraDB:ApplyAura(srcGUID, destGUID, destName, spellId)
+		auraDB:ApplyAura(srcGUID, destGUID, destName, spellId, currentTime)
 		castbarDB:StopCast(srcGUID, srcName)
 		if spellDB.channelDuration[spellName] then
-			castbarDB:addCast(srcGUID, srcName, spellId, spellSchool)
+			castbarDB:addCast(srcGUID, srcName, spellId, spellSchool, currentTime)
 		end
 		if spellDB.channelWithTarget[spellName] then
 			castbarDB:addChanneler(srcGUID, srcName, destGUID, destName, spellName)
@@ -101,13 +102,13 @@ combatlog:SetScript("OnEvent", function()
 	
 	if event == "SPELL_INTERRUPT" then
 		local spellSchool = arg14
-		auraDB:applyInterruptAura(destGUID, destName, spellName, spellSchool)
+		auraDB:applySpellLockAura(destGUID, destName, spellName, spellSchool, currentTime)
 		castbarDB:StopCast(destGUID, destName)
 		return
     end
 	
 	if event == "SPELL_AURA_APPLIED" then
-		auraDB:ApplyAura(srcGUID, destGUID, destName, spellId)
+		auraDB:ApplyAura(srcGUID, destGUID, destName, spellId, currentTime)
 		if spellDB.InterruptsCast[spellName] then
 			castbarDB:StopCast(destGUID, destName)
 		end
@@ -124,12 +125,12 @@ combatlog:SetScript("OnEvent", function()
     end
 
 	if event == "SPELL_AURA_APPLIED_DOSE" then
-		auraDB:ApplyAura(srcGUID, destGUID, destName, spellId)
+		auraDB:ApplyAura(srcGUID, destGUID, destName, spellId, currentTime)
 		return
     end
 	
 	if event == "SPELL_AURA_REFRESH" then
-		auraDB:ApplyAura(srcGUID, destGUID, destName, spellId)
+		auraDB:ApplyAura(srcGUID, destGUID, destName, spellId, currentTime)
 		if tyrPlates.auraCounter[destName] then
 			tyrPlates.auraCounter[destName] = tyrPlates.auraCounter[destName] - 1
 			--ace:print("counter on "..destName.." is "..tyrPlates.auraCounter[destName])
@@ -138,7 +139,7 @@ combatlog:SetScript("OnEvent", function()
     end
 	
 	if event == "SPELL_AURA_REMOVED" then
-		auraDB:RemoveAura(destGUID, destName, spellId, spellName)
+		auraDB:RemoveAura(destGUID, destName, spellId, spellName, currentTime)
 		--for interrupted channeled spells?
 
 		-- if the aura was created by a channeled spell(e.g. mind flay), interrupt the cast of the channeler
