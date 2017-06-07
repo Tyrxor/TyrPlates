@@ -461,8 +461,9 @@ spellDB.interrupt = {
 	["Feral Charge"] = 4,
 }
 
+spellDB.auraDuration = {}
 
-spellDB.auraInfo = {
+spellDB.auraDuration.PvE = {
 [67] = 10, --Vindication (Rank 1)
 [17] = 30, --Power Word: Shield (Rank 1)
 [66] = 5, --Invisibility
@@ -2807,31 +2808,26 @@ spellDB.auraInfo = {
 [26989] = 27, --Entangling Roots
 }
 
-spellDB.PvE = {
-	--[33786] = true, --Cyclone
-	--[8983] = true, --Bash
+
+spellDB.auraDuration.PvP = {
+	[26989] = 10, 	--Entangling Roots Rank 7
+	[18658] = 10, 	--Hibernate Rank 3
+	[11719] = 12, 	--Curse of Tongues
+	[6215] = 10, 	--Fear
+	[6358] = 10, 	--Seduction	
+	[12826] = 10, 	--Polymorph
+	[28271] = 10, 	--Polymorph
+	[28272] = 10, 	--Polymorph
+	[10912] = 10, 	--Mind Control
+	[11297] = 10, 	--Sap
+	[14327] = 10, 	--Scare Beast
+	[14309] = 10, 	--Freezing Trap Effect
+	[27068] = 10, 	--Wyvern Sting
 }
 
---Durations that don't match PvE durations.
---http://www.wowwiki.com/Diminishing_returns
+spellDB.ccCategories = {}
 
-spellDB.auraInfoPvP = {
-	[26989] = 10, --Entangling Roots Rank 7
-	[18658] = 10, --Hibernate Rank 3
-	[11719] = 12, --Curse of Tongues
-	[6215] = 10, --Fear
-	[6358] = 10, --Seduction	
-	[12826] = 10, --Polymorph
-	[28271] = 10, --Polymorph
-	[28272] = 10, --Polymorph
-	[10912] = 10, --Mind Control
-	[11297] = 10, --Sap
-	[14327] = 10, --Scare Beast
-	[14309] = 10, --Freezing Trap Effect
-	[27068] = 10, --Wyvern Sting
-}
-
-spellDB.PvECC = {
+spellDB.ccCategories.PvE = {
 
 	--BC
 	["Cyclone"] = "BC",
@@ -2859,11 +2855,11 @@ spellDB.PvECC = {
 	["Revenge Stun"] = "stun proc",
 	["Mace Stun Effect"] = "stun proc",	
 	
-	--none
-	["Kidney Shot"] = "none",	--?	
+	--self
+	["Kidney Shot"] = "self",	--?	
 }
 
-spellDB.CC = {
+spellDB.ccCategories.PvP = {
 	--GPS
 	["Gouge"] = "GPS",
 	["Sap"] = "GPS",
@@ -2907,7 +2903,7 @@ spellDB.CC = {
 	["Improved Wing Clip"] = "snare",
 	["Improved Hamstring"] = "snare",
 	["Entrapment"] = "snare",
-	["Frostbite"] = "17", --not root	
+	["Frostbite"] = "snare",
 	
 	--fear
 	["Fear"] = "feargroup",
@@ -2917,34 +2913,20 @@ spellDB.CC = {
 	["Scare Beast"] = "feargroup",
 	["Intimidating Shout"] = "feargroup",
 	
-	--[[
-	--silence
-	["Silence"] = "none",
-	["Arcane Torrent"] = "none",
-	["Counterspell - Silenced"] = "none",
-	["Spell Lock"] = "none",
-	["Garrote - Silence"] = "none",
-	["Unstable Affliction"] = "none",
-	["Kick - Silenced"] = "none",
-	["Silencing Shot"] = "none",
-	["Shield Bash - Silenced"] = "none",
-	]]
-	
 	--sleep
 	["Hibernate"] = "sleep",	
 	["Wyvern Sting"] = "sleep",
 	
 	
-	--none
-	["Dragon's Breath"] = "none",
-	["Scatter Shot"] = "none",
-	["Death Coil"] = "none",
-	["Mind Control"] = "none",
-	["Freezing Trap Effect"] = "none",
-	["Kidney Shot"] = "none",		
-	["Kidney Shot"] = "none",		
-	["Feral Charge Effect"] = "none",
-	["Disarm"] = "none",
+	--self
+	["Dragon's Breath"] = "self",
+	["Scatter Shot"] = "self",
+	["Death Coil"] = "self",
+	["Mind Control"] = "self",
+	["Freezing Trap Effect"] = "self",
+	["Kidney Shot"] = "self",				
+	["Feral Charge Effect"] = "self",
+	["Disarm"] = "self",
 }
 
 	
