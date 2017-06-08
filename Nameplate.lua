@@ -88,7 +88,7 @@ function nameplate:CreateNameplate()
 	raidIconRegion:SetHeight(26)
 	raidIconRegion:SetPoint("RIGHT", healthbar, "CENTER", -52, 10)
  
-	CreateHealthText(healthbar)
+	CreateHealthText(this)
 	SetDefaultCastbar(this)
 	CreateCastbar(this)
 	CreateAuraSlots(this)
@@ -190,7 +190,10 @@ function CreateCastbar(frame)
 end
 
 -- create text for the healthbar
-function CreateHealthText(healthbar)
+function CreateHealthText(frame)
+
+	local healthbar = frame:GetChildren()
+	
 	if not healthbar.text then
 		healthbar.text = healthbar:CreateFontString()
 		healthbar.text:SetPoint("RIGHT", healthbar, "RIGHT")
@@ -233,7 +236,6 @@ end
 
 -- creates an icon used if the unit is a totem
 function CreateTotemIcon(frame)
-
     if frame.icon == nil then
 		local healthbar = frame:GetChildren()
 		frame.icon = frame:CreateTexture( "Icon", nil, frame )
