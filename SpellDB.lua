@@ -2,7 +2,16 @@ tyrPlates.spellDB = {}
 
 local spellDB = tyrPlates.spellDB
 
-spellDB.auraFilter = {
+spellDB.trackAura = {}
+
+--auras to be shown if your own
+spellDB.trackAura.own = {
+	["Vampiric Touch"] = "Magic",
+	["Shadow Word: Pain"] = "Magic",
+}
+
+-- auras to be shown on enemies
+spellDB.trackAura.enemy = {
 	
 	--Racial
 	["Arcane Torrent"] = "Magic",
@@ -137,10 +146,132 @@ spellDB.auraFilter = {
 	["Hammer of Justice"] = "Magic",
 	["Divine Intervention"] = "Magic",
 	["Stun"] = "Magic",
-	
-	--testing
 }
 
+--auras to be shown on friendly players
+spellDB.friendlyFilter = {
+
+	--Racial
+	["Arcane Torrent"] = "Magic",
+	["War Stomp"] = "none",
+	
+	--Druid
+	["Cyclone"] = "none",
+	["Entangling Roots"] = "Magic",
+	["Hibernate"] = "Magic",
+	["Starfire Stun"] = "none",
+	["Bash"] = "none",
+	["Maim"] = "none",
+	["Pounce"] = "none",
+	["Feral Charge Effect"] = "none",
+	
+	--Warlock
+	["Shadowfury"] = "Magic",
+	["Pyroclasm"] = "none",
+	["Curse of Tongues"] = "Curse",
+	["Death Coil"] = "Magic",
+	["Fear"] = "Magic",
+	["Howl of Terror"] = "Magic",
+	["Banish"] = "Magic",
+	["Soulstone Resurrection"] = "none",
+	["Enslave Demon"] = "none",
+	["Seduction"] = "Magic",
+	["Spell Lock"] = "Magic",
+	["Sacrifice"] = "Magic",
+	
+	--Mage
+	["Counterspell - Silenced"] = "Magic",
+	["Invisibility"] = "none",
+	["Polymorph"] = "Magic",
+	["Presence of Mind"] = "Magic",
+	["Arcane Power"] = "Magic",
+	["Slow"] = "Magic",
+	["Impact"] = "none",
+	["Combustion"] = "Magic",
+	["Dragon's Breath"] = "Magic",
+	["Frost Nova"] = "Magic",
+	["Ice Block"] = "Magic",
+	["Icy Veins"] = "Magic",
+	["Freeze"] = "Magic",
+	["Frostbite"] = "Magic",
+	["Hypothermia"] = "none",
+	
+	--Shaman
+	["Stoneclaw Stun"] = "Magic",
+	["Shamanistic Rage"] = "none",
+	["Heroism"] = "Magic",
+	["Bloodlust"] = "Magic",
+	
+	--Priest
+	["Mind Control"] = "Magic",
+	["Psychic Scream"] = "Magic",
+	["Silence"] = "Magic",
+	["Blackout"] = "Magic",
+	["Power Infusion"] = "Magic",
+	["Pain Suppression"] = "Magic",
+	["Focused Will"] = "Magic",
+	["Shackle Undead"] = "Magic",
+	
+	--Rogue
+	["Cheap Shot"] = "none",
+	["Kidney Shot"] = "none",
+	["Garrote - Silence"] = "none",
+	["Evasion"] = "none",
+	["Gouge"] = "none",
+	["Cloak of Shadows"] = "none",
+	["Blind"] = "none",
+	["Sap"] = "none",
+	["Adrenaline Rush"] = "none",
+	["Blade Flurry"] = "none",
+	["Kick - Silenced"] = "none",
+	["Cheating Death"] = "none",
+	
+	--Hunter
+	["Bestial Wrath"] = "none",
+	["The Beast Within"] = "none",
+	["Intimidation"] = "none",
+	["Scare Beast"] = "Magic",
+	["Rapid Fire"] = "Magic",
+	["Freezing Trap Effect"] = "Magic",
+	["Improved Concussive Shot"] = "none",
+	["Scatter Shot"] = "none",
+	["Silencing Shot"] = "Magic",
+	["Improved Wing Clip"] = "none",
+	["Entrapment"] = "Magic",
+	["Wyvern Sting"] = "Poison",
+	["Counterattack"] = "none",
+	
+	--Warrior
+	["Charge Stun"] = "none",
+	["Berserker Rage"] = "none",
+	["Intercept Stun"] = "none",
+	["Intimidating Shout"] = "none",
+	["Recklessness"] = "none",
+	["Disarm"] = "none",
+	["Shield Wall"] = "none",
+	["Spell Reflection"] = "none",
+	["Death Wish"] = "none",
+	["Mace Stun Effect"] = "none",
+	["Improved Hamstring"] = "none",
+	["Sweeping Strikes"] = "none",
+	["Last Stand"] = "none",
+	["Concussion Blow"] = "none",
+	["Shield Bash - Silenced"] = "none",
+	["Revenge Stun"] = "none",
+	
+	--Paladin
+	["Avenging Wrath"] = "Magic",
+	["Forbearance"] = "none",
+	["Repentance"] = "Magic",
+	["Blessing of Freedom"] = "Magic",
+	["Blessing of Protection"] = "Magic",
+	["Divine Shield"] = "Magic",
+	["Hammer of Justice"] = "Magic",
+	["Divine Intervention"] = "Magic",
+	["Stun"] = "Magic",
+}
+
+-- stores a predefined icon for the spell lockout aura
 spellDB.spellSchoolIcon = {
 	[2] = "Interface\\Icons\\Spell_Holy_HolyBolt",		--holy
 	[4] = "Interface\\Icons\\Spell_Fire_SelfDestruct",	--fire
@@ -150,7 +281,8 @@ spellDB.spellSchoolIcon = {
 	[64] = "Interface\\Icons\\Spell_Arcane_StarFire"	--arcane
 }
 
-spellDB.spellIdByName = {
+
+spellDB.getSpellId = {
 	["Fear Ward"] = 6346,
 	["Divine Intervention"] = 19753,
 	["Heroism"] = 32182,
@@ -181,115 +313,7 @@ spellDB.spellIdByName = {
 	["Curse of Recklessness"] = 27226,
 }
 
---auras to be shown if your own
-spellDB.ownAuraFilter = {
-	["Vampiric Touch"] = "Magic",
-	["Shadow Word: Pain"] = "Magic",
-}
-
---auras to be shown on friendly players
-spellDB.friendlyFilter = {
-	["Arcane Torrent"] = "Magic",
-	["War Stomp"] = "none",
-	["Cyclone"] = "none",
-	["Entangling Roots"] = "Magic",
-	["Hibernate"] = "Magic",
-	["Starfire Stun"] = "none",
-	["Bash"] = "none",
-	["Maim"] = "none",
-	["Pounce"] = "none",
-	["Feral Charge Effect"] = "none",
-	["Shadowfury"] = "Magic",
-	["Pyroclasm"] = "none",
-	["Curse of Tongues"] = "Curse",
-	["Death Coil"] = "Magic",
-	["Fear"] = "Magic",
-	["Howl of Terror"] = "Magic",
-	["Banish"] = "Magic",
-	["Soulstone Resurrection"] = "none",
-	["Enslave Demon"] = "none",
-	["Seduction"] = "Magic",
-	["Spell Lock"] = "Magic",
-	["Sacrifice"] = "Magic",
-	["Counterspell - Silenced"] = "Magic",
-	["Invisibility"] = "none",
-	["Polymorph"] = "Magic",
-	["Presence of Mind"] = "Magic",
-	["Arcane Power"] = "Magic",
-	["Slow"] = "Magic",
-	["Impact"] = "none",
-	["Combustion"] = "Magic",
-	["Dragon's Breath"] = "Magic",
-	["Frost Nova"] = "Magic",
-	["Ice Block"] = "Magic",
-	["Icy Veins"] = "Magic",
-	["Freeze"] = "Magic",
-	["Frostbite"] = "Magic",
-	["Hypothermia"] = "none",
-	["Stoneclaw Stun"] = "Magic",
-	["Shamanistic Rage"] = "none",
-	["Heroism"] = "Magic",
-	["Bloodlust"] = "Magic",
-	["Mind Control"] = "Magic",
-	["Psychic Scream"] = "Magic",
-	["Silence"] = "Magic",
-	["Blackout"] = "Magic",
-	["Power Infusion"] = "Magic",
-	["Pain Suppression"] = "Magic",
-	["Focused Will"] = "Magic",
-	["Shackle Undead"] = "Magic",
-	["Cheap Shot"] = "none",
-	["Kidney Shot"] = "none",
-	["Garrote - Silence"] = "none",
-	["Evasion"] = "none",
-	["Gouge"] = "none",
-	["Cloak of Shadows"] = "none",
-	["Blind"] = "none",
-	["Sap"] = "none",
-	["Adrenaline Rush"] = "none",
-	["Blade Flurry"] = "none",
-	["Kick - Silenced"] = "none",
-	["Cheating Death"] = "none",
-	["Bestial Wrath"] = "none",
-	["The Beast Within"] = "none",
-	["Intimidation"] = "none",
-	["Scare Beast"] = "Magic",
-	["Rapid Fire"] = "Magic",
-	["Freezing Trap Effect"] = "Magic",
-	["Improved Concussive Shot"] = "none",
-	["Scatter Shot"] = "none",
-	["Silencing Shot"] = "Magic",
-	["Improved Wing Clip"] = "none",
-	["Entrapment"] = "Magic",
-	["Wyvern Sting"] = "Poison",
-	["Counterattack"] = "none",
-	["Charge Stun"] = "none",
-	["Berserker Rage"] = "none",
-	["Intercept Stun"] = "none",
-	["Intimidating Shout"] = "none",
-	["Recklessness"] = "none",
-	["Disarm"] = "none",
-	["Shield Wall"] = "none",
-	["Spell Reflection"] = "none",
-	["Death Wish"] = "none",
-	["Mace Stun Effect"] = "none",
-	["Improved Hamstring"] = "none",
-	["Sweeping Strikes"] = "none",
-	["Last Stand"] = "none",
-	["Concussion Blow"] = "none",
-	["Shield Bash - Silenced"] = "none",
-	["Revenge Stun"] = "none",
-	["Avenging Wrath"] = "Magic",
-	["Forbearance"] = "none",
-	["Repentance"] = "Magic",
-	["Blessing of Freedom"] = "Magic",
-	["Blessing of Protection"] = "Magic",
-	["Divine Shield"] = "Magic",
-	["Hammer of Justice"] = "Magic",
-	["Divine Intervention"] = "Magic",
-	["Stun"] = "Magic",
-}
-
+-- stores auras that change casting speed with their cast speed modifier as value
 spellDB.castSpeedChange = {
 	["Icy Veins"] = 5/6,
 	["Power Infusion"] = 5/6,
@@ -300,6 +324,7 @@ spellDB.castSpeedChange = {
 	["Heroism"] = 10/13,
 	--["Berserking"] = ,
 }
+
 
 spellDB.TotemIdByName = {
 	["Earthbind Totem"] = 2484,
@@ -331,7 +356,8 @@ spellDB.TotemIdByName = {
 
 }
 
-spellDB.InterruptsCast = {
+-- auras that interrupt the targets current cast
+spellDB.interruptsCast = {
 	["Arcane Torrent"] = true,
 	["War Stomp"] = true,
 	["Cyclone"] = true,
@@ -389,7 +415,7 @@ spellDB.InterruptsCast = {
 	["Stun"] = true,
 }
 
-
+-- channels that have a target
 spellDB.channelWithTarget = {
 	["Drain Life"] = 5, 	
 	["Drain Mana"] = 5,		
@@ -400,6 +426,7 @@ spellDB.channelWithTarget = {
 	--["Arcane Missiles"] = 5, doesn't create a aura on the target
 }
 
+-- duration of channeled spells
 spellDB.channelDuration = {
 	["Blizzard"] = 8,		
 	["Evocation"] = 8,		
@@ -411,27 +438,13 @@ spellDB.channelDuration = {
 	["Drain Soul"] = 15,	
 	["Drain Mana"] = 5,		
 	["Health Funnel"] = 10, 
-	--["Seduction"] = 15, special because it's a channel with a cast time 	
+	--["Seduction"] = 15, special because it's a channel with a cast time, instead of being instant	
 	["Volley"] = 6,			
 	["Arcane Missiles"] = 5,
-	["Mind Flay"] = 3,		
-	--[[
-	[12051] = 8, --Evocation
-	[26983] = 8, --Tranquility
-	[27012] = 10, --Hurricane
-	[27220] = 5, --Drain Life
-	[27213] = 15, --Hellfire
-	[27212] = 8, --Rain of Fire
-	[27217] = 15, --Drain Soul
-	[30908] = 5, --Drain Mana
-	[27259] = 10, --Health Funnel
-	[6358] = 15, --Seduction
-	[27022] = 6, --Volley
-	[27085] = 8, --Blizzard
-	]]
-	--[38703] = 5, --Arcane Missiles	
+	["Mind Flay"] = 3,	
 }
 
+-- casts which base cast time can be reduced by talents
 spellDB.reducedCastTime = {
 	["Healing Wave"] = 0.5,
 	["Lightning Bolt"] = 0.5,
@@ -448,9 +461,10 @@ spellDB.reducedCastTime = {
 	["Holy Fire"] = 0.5,
 	["Heal"] = 0.5,
 	["Greater Heal"] = 0.5,
-	["Arcane Missiles"] = 1
+	--["Arcane Missiles"] = 1
 }
 
+-- abilities that interrupt the target
 spellDB.interrupt = {
 	["Pummel"] = 4,
 	["Shield Bash"] = 6,	
@@ -461,8 +475,133 @@ spellDB.interrupt = {
 	["Feral Charge"] = 4,
 }
 
+
+spellDB.ccCategories = {}
+
+-- diminishing return groups in PvP
+spellDB.ccCategories.PvP = {
+	--GPS
+	["Gouge"] = "GPS",
+	["Sap"] = "GPS",
+	["Maim"] = "GPS",
+	["Polymorph"] = "GPS",
+	["Repentance"] = "GPS",
+	
+	--stun
+	["Bash"] = "stun",	
+	["Cheap Shot"] = "stun",
+	["Concussion Blow"] = "stun",
+	["Charge Stun"] = "stun",
+	["Intercept Stun"] = "stun",
+	["Hammer of Justice"] = "stun",
+	["Shadowfury"] = "stun",	
+	["Pounce"] = "stun",
+	["Intimidation"] = "stun",
+	["War Stomp"] = "stun",
+	
+	--BC
+	["Cyclone"] = "BC",
+	["Blind"] = "BC",
+	
+	--stun proc
+	["Starfire Stun"] = "stun proc",
+	["Blackout"] = "stun proc",
+	["Stun"] = "stun proc",
+	["Pyroclasm"] = "stun proc",
+	["Impact"] = "stun proc",
+	["Improved Concussive Shot"] = "stun proc",
+	["Revenge Stun"] = "stun proc",
+	["Mace Stun Effect"] = "stun proc",	
+	
+	--root
+	["Entangling Roots"] = "root",
+	["Frost Nova"] = "root",
+	["Counterattack"] = "root",
+	["Freeze"] = "root",
+	
+	--snare
+	["Improved Wing Clip"] = "snare",
+	["Improved Hamstring"] = "snare",
+	["Entrapment"] = "snare",
+	["Frostbite"] = "snare",
+	
+	--fear
+	["Fear"] = "feargroup",
+	["Howl of Terror"] = "feargroup",
+	["Psychic Scream"] = "feargroup",
+	["Seduction"] = "feargroup",
+	["Scare Beast"] = "feargroup",
+	["Intimidating Shout"] = "feargroup",
+	
+	--sleep
+	["Hibernate"] = "sleep",	
+	["Wyvern Sting"] = "sleep",
+	
+	
+	--self
+	["Dragon's Breath"] = "self",
+	["Scatter Shot"] = "self",
+	["Death Coil"] = "self",
+	["Mind Control"] = "self",
+	["Freezing Trap Effect"] = "self",
+	["Kidney Shot"] = "self",				
+	["Feral Charge Effect"] = "self",
+	["Disarm"] = "self",
+}
+
+-- diminishing return groups in PvP
+spellDB.ccCategories.PvE = {
+
+	--BC
+	["Cyclone"] = "BC",
+	["Blind"] = "BC",
+
+	--stun
+	["Hammer of Justice"] = "stun",
+	["Cheap Shot"] = "stun",
+	["War Stomp"] = "stun",
+	["Bash"] = "stun",
+	["Concussion Blow"] = "stun",
+	["Charge Stun"] = "stun",
+	["Intercept Stun"] = "stun",
+	["Shadowfury"] = "stun",	
+	["Pounce"] = "stun",
+	["Intimidation"] = "stun",
+	
+	--stun proc
+	["Starfire Stun"] = "stun proc",
+	["Blackout"] = "stun proc",
+	["Stun"] = "stun proc",
+	["Pyroclasm"] = "stun proc",
+	["Impact"] = "stun proc",
+	["Improved Concussive Shot"] = "stun proc",
+	["Revenge Stun"] = "stun proc",
+	["Mace Stun Effect"] = "stun proc",	
+	
+	--self
+	["Kidney Shot"] = "self",	--?	
+}
+
 spellDB.auraDuration = {}
 
+-- aura duration on players
+spellDB.auraDuration.PvP = {
+	[26989] = 10, 	--Entangling Roots Rank 7
+	[18658] = 10, 	--Hibernate Rank 3
+	[11719] = 12, 	--Curse of Tongues
+	[6215] = 10, 	--Fear
+	[6358] = 10, 	--Seduction	
+	[12826] = 10, 	--Polymorph
+	[28271] = 10, 	--Polymorph
+	[28272] = 10, 	--Polymorph
+	[10912] = 10, 	--Mind Control
+	[11297] = 10, 	--Sap
+	[14327] = 10, 	--Scare Beast
+	[14309] = 10, 	--Freezing Trap Effect
+	[27068] = 10, 	--Wyvern Sting
+}
+
+-- aura duration on NPCs
 spellDB.auraDuration.PvE = {
 [67] = 10, --Vindication (Rank 1)
 [17] = 30, --Power Word: Shield (Rank 1)
@@ -2807,126 +2946,3 @@ spellDB.auraDuration.PvE = {
 [20594] = 8, --Stone Form
 [26989] = 27, --Entangling Roots
 }
-
-
-spellDB.auraDuration.PvP = {
-	[26989] = 10, 	--Entangling Roots Rank 7
-	[18658] = 10, 	--Hibernate Rank 3
-	[11719] = 12, 	--Curse of Tongues
-	[6215] = 10, 	--Fear
-	[6358] = 10, 	--Seduction	
-	[12826] = 10, 	--Polymorph
-	[28271] = 10, 	--Polymorph
-	[28272] = 10, 	--Polymorph
-	[10912] = 10, 	--Mind Control
-	[11297] = 10, 	--Sap
-	[14327] = 10, 	--Scare Beast
-	[14309] = 10, 	--Freezing Trap Effect
-	[27068] = 10, 	--Wyvern Sting
-}
-
-spellDB.ccCategories = {}
-
-spellDB.ccCategories.PvE = {
-
-	--BC
-	["Cyclone"] = "BC",
-	["Blind"] = "BC",
-
-	--stun
-	["Hammer of Justice"] = "stun",
-	["Cheap Shot"] = "stun",
-	["War Stomp"] = "stun",
-	["Bash"] = "stun",
-	["Concussion Blow"] = "stun",
-	["Charge Stun"] = "stun",
-	["Intercept Stun"] = "stun",
-	["Shadowfury"] = "stun",	
-	["Pounce"] = "stun",
-	["Intimidation"] = "stun",
-	
-	--stun proc
-	["Starfire Stun"] = "stun proc",
-	["Blackout"] = "stun proc",
-	["Stun"] = "stun proc",
-	["Pyroclasm"] = "stun proc",
-	["Impact"] = "stun proc",
-	["Improved Concussive Shot"] = "stun proc",
-	["Revenge Stun"] = "stun proc",
-	["Mace Stun Effect"] = "stun proc",	
-	
-	--self
-	["Kidney Shot"] = "self",	--?	
-}
-
-spellDB.ccCategories.PvP = {
-	--GPS
-	["Gouge"] = "GPS",
-	["Sap"] = "GPS",
-	["Maim"] = "GPS",
-	["Polymorph"] = "GPS",
-	["Repentance"] = "GPS",
-	
-	--stun
-	["Bash"] = "stun",	--not stun proc, not GPS, not BC
-	["Cheap Shot"] = "stun",
-	["Concussion Blow"] = "stun",
-	["Charge Stun"] = "stun",
-	["Intercept Stun"] = "stun",
-	["Hammer of Justice"] = "stun",
-	["Shadowfury"] = "stun",	
-	["Pounce"] = "stun",
-	["Intimidation"] = "stun",
-	["War Stomp"] = "stun",
-	
-	--BC
-	["Cyclone"] = "BC",
-	["Blind"] = "BC",
-	
-	--stun proc
-	["Starfire Stun"] = "stun proc",
-	["Blackout"] = "stun proc",
-	["Stun"] = "stun proc",
-	["Pyroclasm"] = "stun proc",
-	["Impact"] = "stun proc",
-	["Improved Concussive Shot"] = "stun proc",
-	["Revenge Stun"] = "stun proc",
-	["Mace Stun Effect"] = "stun proc",	
-	
-	--root
-	["Entangling Roots"] = "root",
-	["Frost Nova"] = "root",
-	["Counterattack"] = "root",
-	["Freeze"] = "root",
-	
-	--snare
-	["Improved Wing Clip"] = "snare",
-	["Improved Hamstring"] = "snare",
-	["Entrapment"] = "snare",
-	["Frostbite"] = "snare",
-	
-	--fear
-	["Fear"] = "feargroup",
-	["Howl of Terror"] = "feargroup",
-	["Psychic Scream"] = "feargroup",
-	["Seduction"] = "feargroup",
-	["Scare Beast"] = "feargroup",
-	["Intimidating Shout"] = "feargroup",
-	
-	--sleep
-	["Hibernate"] = "sleep",	
-	["Wyvern Sting"] = "sleep",
-	
-	
-	--self
-	["Dragon's Breath"] = "self",
-	["Scatter Shot"] = "self",
-	["Death Coil"] = "self",
-	["Mind Control"] = "self",
-	["Freezing Trap Effect"] = "self",
-	["Kidney Shot"] = "self",				
-	["Feral Charge Effect"] = "self",
-	["Disarm"] = "self",
-}
-
-	
