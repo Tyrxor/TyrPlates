@@ -1,3 +1,4 @@
+-- create main frame
 tyrPlates = CreateFrame("Frame", nil, UIParent)
 
 tyrPlates:RegisterEvent("ADDON_LOADED")

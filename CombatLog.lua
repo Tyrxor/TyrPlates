@@ -44,7 +44,7 @@ combatlog:SetScript("OnEvent", function()
 	local spellName = arg10
 	local spellSchool = arg11
    
-   	-- track damage events for npcs
+   	-- track damage events for NPCs
 	if not tyrPlates:IsPlayerOrPetGUID(destGUID) then
 		if event == "SWING_DAMAGE" then
 			local amount = arg9
@@ -122,7 +122,7 @@ combatlog:SetScript("OnEvent", function()
 	--> adds the aura to the auraDB and interrupts the target if the aura causes a "lose control" effect
 	if event == "SPELL_AURA_APPLIED" then
 		auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
-		if spellDB.InterruptsCast[spellName] then
+		if spellDB.interruptsCast[spellName] then
 			castbarDB:StopCast(destGUID, destName)
 		end
 	  --[[

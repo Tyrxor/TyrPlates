@@ -7,7 +7,7 @@ local castbarDB = tyrPlates.castbarDB
 local spellDB = tyrPlates.spellDB
 local DRDB = {}
 
---applys auras to players and npcs
+--applys auras to players and NPCs
 function auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 	
 	-- can sometimes be the case if the spell has no target (e.g. cloak of shadows)
@@ -16,7 +16,7 @@ function auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 	local auraName, _, AuraIcon = GetSpellInfo(spellId)
 	
 	--check if aura has to be shown/applied
-	if spellDB.auraFilter[auraName] or (spellDB.ownAuraFilter[auraName] and (tyrPlates:IsOwnGUID(srcGUID) or IsOwnCast(auraName, currentTime))) then
+	if spellDB.trackAura.enemy[auraName] or (spellDB.trackAura.own[auraName] and (tyrPlates:IsOwnGUID(srcGUID) or IsOwnCast(auraName, currentTime))) then
 		
 		local auraDuration
 		local seductionCaster
@@ -31,7 +31,7 @@ function auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 			end
 		end
 				
-		local auraType = spellDB.ownAuraFilter[auraName] or spellDB.auraFilter[auraName] 
+		local auraType = spellDB.trackAura.own[auraName] or spellDB.trackAura.enemy[auraName] 
 		
 		-- check if aura has a known auraType, if not it is set to none
 		if auraType == true then 
@@ -164,7 +164,7 @@ function auraDB:RemoveAura(destGUID, destName, spellId, aura, currentTime)
 		end	
 
 		-- delete all auras with the given name unless you track it and it's not your own 
-		if not spellDB.ownAuraFilter[aura] or IsOwnAura(aura, dest, currentTime) then
+		if not spellDB.trackAura.own[aura] or IsOwnAura(aura, dest, currentTime) then
 			auraDB[dest][aura] = nil
 			
 			-- check if the removed aura has a diminishing return

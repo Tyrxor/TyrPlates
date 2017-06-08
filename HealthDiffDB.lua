@@ -1,4 +1,4 @@
--- stores the current healthdifference (maxHP - currentHP) of npcs referenced by their name and difference
+-- stores the current healthdifference (maxHP - currentHP) of NPCs referenced by their name and difference
 tyrPlates.healthDiffDB = {}
 local healthDiffDB = tyrPlates.healthDiffDB
 

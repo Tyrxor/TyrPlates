@@ -261,7 +261,7 @@ function tyrPlates:UpdateColors(frame, name, healthbar)
   local red, green, blue, _ = healthbar:GetStatusBarColor()
   if frame.isFriendlyPlayer == nil then	--nil is correct, don't use not
 	if blue > 0.9 and red == 0 and green == 0 then
-		-- friendly npc/player	
+		-- friendly NPC/Player	
 		frame.isPlayer = true
 		frame.isFriendlyPlayer = true
 	else
@@ -271,13 +271,9 @@ function tyrPlates:UpdateColors(frame, name, healthbar)
 
   -- if name is a player and in playerdatabase -> give class color
   if TyrPlatesDB.class[name:GetText()] then
-  	frame.isPlayer = true
-	if tyrPlates_config["friendlyClassColor"] or not frame.isFriendlyPlayer then
-		local color = RAID_CLASS_COLORS[TyrPlatesDB.class[name:GetText()]]
-		healthbar:SetStatusBarColor(color.r, color.g, color.b, 1)
-	else
-		healthbar:SetStatusBarColor(0,1,0,1)
-	end
+	frame.isPlayer = true
+	local color = RAID_CLASS_COLORS[TyrPlatesDB.class[name:GetText()]]
+	healthbar:SetStatusBarColor(color.r, color.g, color.b, 1)
 	return
   end
   
@@ -379,9 +375,9 @@ function tyrPlates:UpdateAuras(identifier, unit)
 				tyrPlates.auraDB[identifier][name]["startTime"] = tyrPlates.auraDB[identifier][name]["startTime"] + timediff
 			end
 			aurasOnEnemy[name] = true
-		elseif spellDB.auraFilter[name] or spellDB.ownAuraFilter[name] then
+		elseif spellDB.trackAura.enemy[name] or spellDB.trackAura.own[name] then
 		
-			local spellId = spellDB.spellIdByName[name]
+			local spellId = spellDB.getSpellId[name]
 			if not spellId then
 				ace:print("SpellID missing for "..name)
 				aurasOnEnemy[name] = true
@@ -390,7 +386,7 @@ function tyrPlates:UpdateAuras(identifier, unit)
 		
 			local _, _, auraIcon = GetSpellInfo(spellId)
 			
-			local auraType = spellDB.ownAuraFilter[name] or spellDB.auraFilter[name] 
+			local auraType = spellDB.trackAura.own[name] or spellDB.trackAura.enemy[name] 
 			if not tyrPlates.auraDB[identifier] then tyrPlates.auraDB[identifier] = {} end
 			if timeLeft then
 				tyrPlates.auraDB[identifier][name] = {startTime = currentTime, duration = timeLeft, icon = auraIcon, auratype = auraType}
@@ -412,9 +408,9 @@ function tyrPlates:UpdateAuras(identifier, unit)
 				tyrPlates.auraDB[identifier][name]["startTime"] = tyrPlates.auraDB[identifier][name]["startTime"] + timediff
 			end
 			aurasOnEnemy[name] = true
-		elseif spellDB.auraFilter[name] or spellDB.ownAuraFilter[name] then
+		elseif spellDB.trackAura.enemy[name] or spellDB.trackAura.own[name] then
 		
-			local spellId = spellDB.spellIdByName[name]
+			local spellId = spellDB.getSpellId[name]
 			if not spellId then
 				ace:print("SpellID missing for "..name)
 				aurasOnEnemy[name] = true
@@ -423,7 +419,7 @@ function tyrPlates:UpdateAuras(identifier, unit)
 		
 			local _, _, auraIcon = GetSpellInfo(spellId)
 			
-			local auraType = spellDB.ownAuraFilter[name] or spellDB.auraFilter[name] 
+			local auraType = spellDB.trackAura.own[name] or spellDB.trackAura.enemy[name] 
 			if not tyrPlates.auraDB[identifier] then tyrPlates.auraDB[identifier] = {} end
 			if timeLeft then
 				tyrPlates.auraDB[identifier][name] = {startTime = currentTime, duration = timeLeft, icon = auraIcon, auratype = auraType}
