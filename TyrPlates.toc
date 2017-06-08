@@ -7,10 +7,10 @@
 
 TyrPlates.lua
 SpellDB.lua
-Nameplate.lua
-NameplateUpdater.lua
+HealthDiffDB.lua
 CastbarDB.lua
 AuraDB.lua
 CombatLog.lua
-HealthDiffDB.lua
+Nameplate.lua
+NameplateUpdater.lua
 Config.lua
