@@ -149,7 +149,7 @@ spellDB.trackAura.enemy = {
 }
 
 --auras to be shown on friendly players
-spellDB.friendlyFilter = {
+spellDB.trackAura.friendlyPlayer = {
 
 	--Racial
 	["Arcane Torrent"] = "Magic",
@@ -326,7 +326,7 @@ spellDB.castSpeedChange = {
 }
 
 
-spellDB.TotemIdByName = {
+spellDB.getTotemId = {
 	["Earthbind Totem"] = 2484,
 	--["Fire Elemental Totem"] = 2894,
 	["Fire Nova Totem VII"] = 25547,
