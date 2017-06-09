@@ -298,6 +298,9 @@ function UpdateUnitAuras(unitIdentifier, unit)
 		auraDB[unitIdentifier] = {}
 	end
 	
+	-- save the interrupt aura if it exists
+	auraFound["interrupt"] = true
+	
 	UpdateUnitAurasByAuraType(unitIdentifier, unit, currentTime, auraFound, UnitDebuff)
 	UpdateUnitAurasByAuraType(unitIdentifier, unit, currentTime, auraFound, UnitBuff)
 
