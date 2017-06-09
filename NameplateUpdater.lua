@@ -3,22 +3,11 @@ local nameplate = tyrPlates.nameplate
 local castbarDB = tyrPlates.castbarDB
 local auraDB = tyrPlates.auraDB
 local spellDB = tyrPlates.spellDB
+local healthDiffDB = tyrPlates.healthDiffDB
 
---hide Playererrors (not LUA)
+--hides Playererrors (not LUA)
 -- UIErrorsFrame:Hide()
 
-function ConvertToNormalPlate(frame)
-	local healthbar = frame:GetChildren()
-	local healthbarBorder, _, _, glow, nameRegion = frame:GetRegions()
-	
-	healthbar:SetAlpha(1)
-	healthbarBorder:Show()
-	glow:Show()
-	nameRegion:Show()
-	frame.icon:SetTexture(0,0,0,0)
-end
-
--- Update Nameplate
 function nameplate:UpdateNameplate()
 	if not this.setup then nameplate:CreateNameplate() return end
 	 
@@ -27,27 +16,39 @@ function nameplate:UpdateNameplate()
 	local unitName = nameRegion:GetText()
 	level:Hide()
   
+  	--try to get guid through nameplates current healthDiff
+	if not nameplate.nameplateByGUID[this] then
+		local _, max = healthbar:GetMinMaxValues()
+		local curHealth = healthbar:GetValue()
+		local healthDiff = max-curHealth
+		if healthDiffDB[healthDiff..unitName] then
+			nameplate.nameplateByGUID[this] = healthDiffDB[healthDiff..unitName]
+		end
+	end
+  
+	-- change layout if nameplate is the target, set it's guid and update it's auras and casts
 	if IsTarget(this) then
+		local target
 		local unit = "target"
-		local targetName = UnitName(unit)
+		local targetName = UnitName(unit) -- should be the same as unitName in this case
 		local targetGUID = UnitGUID(unit)
 
-
-		-- update auras and casts
+		nameplate.nameplateByGUID[this] = targetGUID	-- set guid of the nameplate
+		
 		if tyrPlates:IsPlayerOrPetGUID(targetGUID) then
-			UpdateAuras(targetName, unit)
-			UpdateCast(targetName, unit)
+			target = targetName
 		else
-			UpdateAuras(targetGUID, unit)
-			UpdateCast(targetGUID, unit)
+			target = targetGUID
 		end
+
+		UpdateUnitAuras(target, unit)
+		UpdateUnitCast(target, unit)
 	  
-		if not tyrPlates:IsPlayerOrPetGUID(targetGUID) then
-			nameplate.nameplateByGUID[this] = targetGUID
-		end
+		-- show highlight around the nameplate
 		healthbar.targetBorder:Show()
 		healthbar:SetPoint("TOP", this, "TOP", 0, 7)
 		
+		-- show spellName on default castbar
 		local spell = UnitCastingInfo("target") or UnitChannelInfo("target")
 		castbar.spellNameRegion:SetText(spell)
 	else
@@ -62,61 +63,79 @@ function nameplate:UpdateNameplate()
 			nameplate.nameplateByGUID[this] = mouseoverGUID
 		end
 	end
-  
-	if spellDB.TotemIdByName[unitName] then
-		ConvertToTotemPlate(this)
-	else
-		ConvertToNormalPlate(this)
-		UpdateHealthbarColor(this, nameRegion, healthbar)
-		UpdateCastbar(this, nameRegion, healthbar)
-		UpdateDebuffs(this, nameRegion, healthbar)
-		UpdateHealth(healthbar) 
-	end  
+	
+	UpdateHealthbarColor(this, nameRegion, healthbar)
+	UpdateNameplateCastbar(this, unitName, healthbar)
+	UpdateNameplateAuras(this, unitName, healthbar)
+	UpdateNameplateHealth(healthbar)  
 end
 
+function UpdateNameplateAuras(frame, unitName, healthbar)
 
-function UpdateDebuffsIdentifier(frame, healthbar, Identifier, currentTime)
+	local unit
+	if nameplate.nameplateByGUID[frame] or auraDB[unitName] then
+		if nameplate.nameplateByGUID[frame] then 
+			unit = nameplate.nameplateByGUID[frame]
+		else
+			unit = unitName
+		end
+		
+		if not auraDB[unit] then auraDB[unit] = {} end
 
-	if auraDB[Identifier] then
 		local currentTime = GetTime()
 		local j, k = 1, 1
-		local num = tableLength(auraDB[Identifier], frame.isFriendlyPlayer)
-		for Aura in pairs(auraDB[Identifier]) do
-			--don't show aura if plate is friendly and the aura not in friendlyFilter
-			if not frame.isFriendlyPlayer or spellDB.friendlyFilter[Aura] then
-				frame.auras[j]:SetTexture(auraDB[Identifier][Aura]["icon"])
+		local numberOfAuras = tableLength(auraDB[unit], frame.isFriendlyPlayer)
+		for aura in pairs(auraDB[unit]) do
+			--don't show aura if unit is a friendly player and the aura not in spellDB.trackAura.friendlyPlayer
+			if not frame.isFriendlyPlayer or spellDB.trackAura.friendlyPlayer[aura] then
+			
+				-- set auraIcon
+				frame.auras[j]:SetTexture(auraDB[unit][aura]["icon"])
 				frame.auras[j]:SetAlpha(1)
+				
+				-- set alignment of the auraslots, depends on the number of auras that have to be shown
 				if j == 1 then
-					frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", -(num-1)*18, 50)
+					frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", -(numberOfAuras-1)*18, 50)
 				else
 					frame.auras[j]:SetPoint("LEFT", frame.auras[j-1], "RIGHT", 5, 0)
 				end
-				local borderColor = DebuffTypeColor[auraDB[Identifier][Aura]["auratype"]]
+				
+				-- set color of border and show it
+				local borderColor = DebuffTypeColor[auraDB[unit][aura]["auratype"]]
 				if borderColor then
 					frame.auras[j].border:SetVertexColor(borderColor.r, borderColor.g, borderColor.b)
 					frame.auras[j].border:Show()
 				end
-				
-				local startTime = auraDB[Identifier][Aura]["startTime"]
-				local duration = tonumber(auraDB[Identifier][Aura]["duration"])
-				local timeLeft = duration+startTime-currentTime
-				
-				if timeLeft < 0 or timeLeft > 60 then --don't show timer
+					
+				local startTime = auraDB[unit][aura]["startTime"]
+				local duration = auraDB[unit][aura]["duration"]
+				local timeLeft = startTime + duration - currentTime
+					
+				-- show duration timer
+				if timeLeft < 0 or timeLeft > 60 then
 					frame.auras[j].counter:SetText("")
+					--[[
 					if not borderColor then	--I don't really understand this
-						auraDB[Identifier]["interrupt"] = nil
+						auraDB[unit]["interrupt"] = nil
 					end
+					]]
 				else	
+					-- show timer above 10s only as full seconds
 					if timeLeft < 10 then
 						timeLeft = floor( timeLeft * 10 ^ 1 + 0.5 ) / 10 ^ 1
 					else
 						timeLeft = ceil(timeLeft)
 					end
 					
-					local perc = timeLeft / 15
-					local r, g, b = ColorGradient(perc)
+					-- set timer
+					frame.auras[j].counter:SetText(timeLeft)
+					
+					-- change color of the timer depending on it's duration
+					local percent = timeLeft / 15
+					local r, g, b = ColorGradient(percent)
 					frame.auras[j].counter:SetTextColor( r, g, b )
-							
+						
+					-- let icon blink if close to expiration
 					if timeLeft < 3 then
 						local f = currentTime % 1
 						if f > 0.5 then 
@@ -124,56 +143,38 @@ function UpdateDebuffsIdentifier(frame, healthbar, Identifier, currentTime)
 						end
 						frame.auras[j]:SetAlpha(f * 2)
 					end				
-					frame.auras[j].counter:SetText(timeLeft)
 				end						
 				k = k + 1
 				j = j + 1
-			end	
+			end
 		end
-		for j = k, 10, 1 do
+		-- reset and hide remaining auraslots 
+		for j = k, 10 do
 			frame.auras[j]:SetTexture(nil)
 			frame.auras[j].counter:SetText("")
 			frame.auras[j].border:Hide()
 		end
 	else
-		for j = 1, 10, 1 do
-			frame.auras[j]:SetTexture(nil)
-			frame.auras[j].counter:SetText("")
-			frame.auras[j].border:Hide()
-		end
-	end
-end
-
-
-function UpdateDebuffs(frame, unitName, healthbar)
-
-	if nameplate.nameplateByGUID[frame] then
-		local guid = nameplate.nameplateByGUID[frame]
-		UpdateDebuffsIdentifier(frame, healthbar, guid)
-
-	elseif auraDB[unitName] then
-		UpdateDebuffsIdentifier(frame, healthbar, unitName)
-	else
-		for j = 1, 10, 1 do
-			
+		-- reset and hide all auraslots and show a questionmark if necessary
+		for j = 1, 10 do		
 			if j == 1 and tyrPlates.inCombat and not frame.isPlayer and not frame.isFriendlyNPC and tyrPlates.auraCounter[unitName] and tyrPlates.auraCounter[unitName] > 0 then
 				frame.auras[j]:SetTexture("Interface\\Icons\\Inv_misc_questionmark")
 				frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", 0, 50)
-				frame.auras[j].counter:SetText("")
-				frame.auras[j].border:Hide()
 			else
 				frame.auras[j]:SetTexture(nil)
-				frame.auras[j].counter:SetText("")
-				frame.auras[j].border:Hide()
 			end
+			frame.auras[j].counter:SetText("")
+			frame.auras[j].border:Hide()
 		end
 	end
 end
 
 function UpdateHealthbarColor(frame, nameRegion, healthbar)
 
+	-- set color of unitName to white
 	nameRegion:SetTextColor(1,1,1,1)
 
+	-- change color depending on aggro level
 	if frame.aggro then 
 		if frame.aggro == 0 then
 			healthbar:SetStatusBarColor(1,0,0,1)
@@ -185,12 +186,14 @@ function UpdateHealthbarColor(frame, nameRegion, healthbar)
 		else
 			healthbar:SetStatusBarColor(1,1,0,1)	
 		end
+		return
 	end
   
 	local red, green, blue, _ = healthbar:GetStatusBarColor()
+
+	-- check if unit is a friendly player
 	if frame.isFriendlyPlayer == nil then	--nil is correct, don't use not
 		if blue > 0.9 and red == 0 and green == 0 then
-			-- friendly NPC/Player	
 			frame.isPlayer = true
 			frame.isFriendlyPlayer = true
 		else
@@ -199,7 +202,8 @@ function UpdateHealthbarColor(frame, nameRegion, healthbar)
 	end
 
 	local unitName = nameRegion:GetText()
-	-- if name is a player and in playerdatabase -> give class color
+	
+	-- if the unitName is in the classDB, give classcolor
 	if TyrPlatesDB.class[unitName] then
 		frame.isPlayer = true
 		local color = RAID_CLASS_COLORS[TyrPlatesDB.class[unitName]]
@@ -227,56 +231,53 @@ function UpdateHealthbarColor(frame, nameRegion, healthbar)
 	end
 end
 
-function UpdateCastbarByUnit(unit, healthbar)
+function UpdateNameplateCastbar(frame, unitName, healthbar)
 
-	local currentTime = GetTime()
-	if castbarDB.castDB[unit] and castbarDB.castDB[unit]["cast"] then
-		if castbarDB.castDB[unit]["startTime"] + castbarDB.castDB[unit]["castTime"] <= currentTime then
+	local unit	
+	if nameplate.nameplateByGUID[frame] then 
+		unit = nameplate.nameplateByGUID[frame]
+	else
+		unit = unitName
+	end
+
+	-- show and update castbar if a cast exist and the default blizzard one isn't shown (not target)
+	if not IsTarget(frame) and castbarDB.castDB[unit] and castbarDB.castDB[unit]["cast"] then
+		
+		local currentTime = GetTime()
+		local startTime = castbarDB.castDB[unit]["startTime"]
+		local castProgress = currentTime - startTime
+		
+		-- delete entry if cast has finished
+		if startTime + castbarDB.castDB[unit]["castTime"] <= currentTime then
 			castbarDB.castDB[unit] = nil
 			healthbar.castbar:Hide()
 		else
-			if spellDB.channelDuration[castbarDB.castDB[unit]["cast"]] or spellDB.channelWithTarget[castbarDB.castDB[unit]["cast"]] then
-				healthbar.castbar:SetMinMaxValues(0, castbarDB.castDB[unit]["castTime"])
-				healthbar.castbar:SetValue(castbarDB.castDB[unit]["castTime"] - (currentTime -  castbarDB.castDB[unit]["startTime"]))
+			-- set castProgressBar depending on if spell is a cast or channel
+			local spellName = castbarDB.castDB[unit]["cast"]
+			local castTime = castbarDB.castDB[unit]["castTime"]
+			healthbar.castbar:SetMinMaxValues(0, castTime)
+			if spellDB.channelDuration[spellName] or spellDB.channelWithTarget[spellName] then
+				healthbar.castbar:SetValue(castTime - castProgress)
 			else
-				healthbar.castbar:SetMinMaxValues(0, castbarDB.castDB[unit]["castTime"])
-				healthbar.castbar:SetValue(currentTime - castbarDB.castDB[unit]["startTime"])
+				healthbar.castbar:SetValue(castProgress)
 			end
+				
+			-- set spelltext
+			healthbar.castbar.text:SetText(castbarDB.castDB[unit]["cast"])
 			
-			if healthbar.castbar.text then
-				healthbar.castbar.text:SetText(castbarDB.castDB[unit]["cast"])
-			else
-				healthbar.castbar.text:SetText("")
-			end
+			-- set icon
+			healthbar.castbar.icon:SetTexture(castbarDB.castDB[unit]["icon"])
+			healthbar.castbar.icon:SetTexCoord(.1,.9,.1,.9)
+			
 			healthbar.castbar:Show()
-		
-			if castbarDB.castDB[unit]["icon"] then
-				healthbar.castbar.icon:SetTexture(castbarDB.castDB[unit]["icon"])
-				healthbar.castbar.icon:SetTexCoord(.1,.9,.1,.9)
-			end
-		end
-	else
-		healthbar.castbar:Hide()
-	end
-end
-
--- updates the nameplates castbar
-function UpdateCastbar(frame, unitName, healthbar)
-	if not IsTarget(frame) then
-		local guid
-		if nameplate.nameplateByGUID[frame] then 
-			guid = nameplate.nameplateByGUID[frame]
-			UpdateCastbarByUnit(guid, healthbar)
-		else
-			UpdateCastbarByUnit(unitName, healthbar)
-		end
+		end	
 	else
 		healthbar.castbar:Hide()
 	end
 end
 
 -- updates shown health 
-function UpdateHealth(healthbar)
+function UpdateNameplateHealth(healthbar)
 	local min, max = healthbar:GetMinMaxValues()
 	local currentHealth = healthbar:GetValue()
 	local healthInPercent = floor(currentHealth / max*100)
@@ -289,149 +290,106 @@ function UpdateHealth(healthbar)
 	end
 end
 
-function UpdateAuras(identifier, unit)
+function UpdateUnitAuras(unitIdentifier, unit)
 
 	local currentTime = GetTime()
-	local aurasOnEnemy = {}
-	local i = 1
-	local name, _, _, _, _, duration, timeLeft  =  UnitDebuff(unit, i)
+	local auraFound = {}
 	
-	if not auraDB[identifier] then
-		auraDB[identifier] = {}
+	if not auraDB[unitIdentifier] then
+		auraDB[unitIdentifier] = {}
 	end
-	local tmpTable = auraDB[identifier]
+	
+	UpdateUnitAurasByAuraType(unitIdentifier, unit, currentTime, auraFound, UnitDebuff)
+	UpdateUnitAurasByAuraType(unitIdentifier, unit, currentTime, auraFound, UnitBuff)
 
-	while name do
-		if auraDB[identifier] and auraDB[identifier][name] then
-			if timeLeft then
-				local timediff = timeLeft - (auraDB[identifier][name]["duration"] - (currentTime - auraDB[identifier][name]["startTime"]))
-				auraDB[identifier][name]["startTime"] = auraDB[identifier][name]["startTime"] + timediff
-			end
-			aurasOnEnemy[name] = true
-		elseif spellDB.trackAura.enemy[name] or spellDB.trackAura.own[name] then
-		
-			local spellId = spellDB.getSpellId[name]
-			if not spellId then
-				ace:print("SpellID missing for "..name)
-				aurasOnEnemy[name] = true
-				return
-			end 
-		
-			local _, _, auraIcon = GetSpellInfo(spellId)
-			
-			local auraType = spellDB.trackAura.own[name] or spellDB.trackAura.enemy[name] 
-			if not auraDB[identifier] then auraDB[identifier] = {} end
-			if timeLeft then
-				auraDB[identifier][name] = {startTime = currentTime, duration = timeLeft, icon = auraIcon, auratype = auraType}
-			else
-				auraDB[identifier][name] = {startTime = 0, duration = 0, icon = auraIcon, auratype = auraType}
-			end
-			aurasOnEnemy[name] = true			
-		end 
-		i = i + 1
-		name, _, _, _, _, duration, timeLeft  =  UnitDebuff(unit, i)
-	end
-	
-	i = 1
-	name, _, _, _, _, _, timeLeft  =  UnitBuff(unit, i)
-	while name do
-		if auraDB[identifier] and auraDB[identifier][name] then
-			if timeLeft then
-				local timediff = timeLeft - (auraDB[identifier][name]["duration"] - (currentTime - auraDB[identifier][name]["startTime"]))
-				auraDB[identifier][name]["startTime"] = auraDB[identifier][name]["startTime"] + timediff
-			end
-			aurasOnEnemy[name] = true
-		elseif spellDB.trackAura.enemy[name] or spellDB.trackAura.own[name] then
-		
-			local spellId = spellDB.getSpellId[name]
-			if not spellId then
-				ace:print("SpellID missing for "..name)
-				aurasOnEnemy[name] = true
-				return
-			end 
-		
-			local _, _, auraIcon = GetSpellInfo(spellId)
-			
-			local auraType = spellDB.trackAura.own[name] or spellDB.trackAura.enemy[name] 
-			if not auraDB[identifier] then auraDB[identifier] = {} end
-			if timeLeft then
-				auraDB[identifier][name] = {startTime = currentTime, duration = timeLeft, icon = auraIcon, auratype = auraType}
-			else
-				auraDB[identifier][name] = {startTime = 0, duration = 0, icon = auraIcon, auratype = auraType}
-			end
-			aurasOnEnemy[name] = true	
-		end 
-		i = i + 1
-		name, _, _, _, _, _, timeLeft  =  UnitBuff(unit, i)
-	end
-	
-	--delete auras on enemy that were not found 
-	if tmpTable then
-		for aura in pairs(tmpTable) do
-			if not aurasOnEnemy[aura] then
-				--ace:print("remove ".. aura .. " from "..identifier)
-				auraDB[identifier][aura] = nil
-			end
+	--delete auras from the auraDB that were not found on the enemy
+	for aura in pairs(auraDB[unitIdentifier]) do
+		if not auraFound[aura] then
+			--ace:print("remove ".. aura .. " from "..identifier)
+			auraDB[unitIdentifier][aura] = nil
 		end
 	end
 end
 
-function UpdateCast(identifier, unit)
+function UpdateUnitAurasByAuraType(unitIdentifier, unit, currentTime, auraFound, auraTypeFunction)
 
-	local spell, rank, displayName, icon, startTime, endTime, isTradeSkill = UnitCastingInfo(unit)
-	if spell then
-		if castbarDB.castDB[identifier] then
-			local castTime = castbarDB.castDB[identifier]["castTime"]
-			local trueCastTime = (endTime-startTime)/1000
+	local i = 1
+	local auraName, _, _, _, _, _, timeLeft = auraTypeFunction(unit, i)
+	
+	while auraName do
+		-- if an entry for this aura exists and belongs to the player, update it's entry
+		if auraDB[unitIdentifier][auraName] then
+			if timeLeft then
+				local duration = auraDB[unitIdentifier][auraName]["duration"]
+				local startTime = auraDB[unitIdentifier][auraName]["startTime"]
+				local timeDiff = timeLeft - (duration - (currentTime - startTime))
+				auraDB[unitIdentifier][auraName]["startTime"] = startTime + timeDiff
+			end
+			auraFound[auraName] = true
+		-- if this aura wasn't found but should be shown, create a new entry
+		elseif spellDB.trackAura.enemy[auraName] or spellDB.trackAura.own[auraName] then
+		
+			-- get spellId to get the aura icon
+			local spellId = spellDB.getSpellId[auraName]
+			if not spellId then
+				ace:print("SpellID missing for "..auraName)
+				auraFound[auraName] = true
+				return
+			end		
 			
-			castbarDB.castDB[identifier]["castTime"] = trueCastTime
+			local _, _, auraIcon = GetSpellInfo(spellId)
+			local auraType = spellDB.trackAura.own[auraName] or spellDB.trackAura.enemy[auraName] 
 			
-			--change basecastTime
-			if UnitIsPlayer(unit) then
-				if not spellDB.reducedCastTime[spell] then
-					if not castbarDB.castingSpeedDB[identifier] then castbarDB.castingSpeedDB[identifier] = 1 end
-					castbarDB.castingSpeedDB[identifier] = castbarDB.castingSpeedDB[identifier] * (trueCastTime/castTime)
-				end
+			if timeLeft then
+				auraDB[unitIdentifier][auraName] = {startTime = currentTime, duration = timeLeft, icon = auraIcon, auratype = auraType}
+			else
+				auraDB[unitIdentifier][auraName] = {startTime = 0, duration = 0, icon = auraIcon, auratype = auraType}
+			end
+			auraFound[auraName] = true			
+		end 
+		i = i + 1
+		auraName, _, _, _, _, _, timeLeft = auraTypeFunction(unit, i)
+	end
+end
+
+-- updates the current cast of a given unit
+function UpdateUnitCast(unitIdentifier, unit)
+
+	local spellName, _, displayName, spellIcon, startTime, endTime = UnitCastingInfo(unit)
+	if not spellName then
+		spellName, _, displayName, spellIcon, startTime, endTime = UnitChannelInfo(unit)
+	end
+	
+	-- check if unit is currently casting
+	if spellName then
+		local remainingCastTime = (endTime-startTime)/1000 	-- divided by 1000 to convert both values to seconds
+		-- if our castDB has an entry for this cast, update this entry otherwise create a new one
+		if castbarDB.castDB[unitIdentifier] then
+			local castTime = castbarDB.castDB[unitIdentifier]["castTime"]
+		
+			-- update spell casttime for the player
+			castbarDB.castDB[unitIdentifier]["castTime"] = remainingCastTime
+			
+			-- if the updated castTime doesn't align with the castDB, change the casters base casting speed 
+			if UnitIsPlayer(unit) and not spellDB.reducedCastTime[spellName] then
+				if not castbarDB.castingSpeedDB[unitIdentifier] then castbarDB.castingSpeedDB[unitIdentifier] = 1 end
+				castbarDB.castingSpeedDB[unitIdentifier] = castbarDB.castingSpeedDB[unitIdentifier] * (remainingCastTime/castTime)
 			end				
 		else
-			castbarDB.castDB[identifier] = {cast = spell, startTime = startTime/1000, castTime = (endTime-startTime)/1000, icon = icon, school = nil, pushbackCounter = 0}
-		end
-	else
-		spell, rank, displayName, icon, startTime, endTime, isTradeSkill = UnitChannelInfo(unit)
-		if not spell then 
-			if castbarDB.castDB[identifier] then
-				castbarDB.castDB[identifier] = nil 
-			end
-			return 
-		end
-		
-		if castbarDB.castDB[identifier] then
-			local castTime = castbarDB.castDB[identifier]["castTime"]
-			local trueCastTime = (endTime-startTime)/1000
-			
-			castbarDB.castDB[identifier]["castTime"] = trueCastTime
-			
-			--change basecastTime
-			if UnitIsPlayer(unit) then
-				if not spellDB.reducedCastTime[spell] then
-					if not castbarDB.castingSpeedDB[identifier] then castbarDB.castingSpeedDB[identifier] = 1 end
-					castbarDB.castingSpeedDB[identifier] = castbarDB.castingSpeedDB[identifier] * (trueCastTime/castTime)
-				end
-			end		
-		else
-			castbarDB.castDB[identifier] = {cast = spell, startTime = startTime/1000, castTime = (endTime-startTime)/1000, icon = icon, school = nil, pushbackCounter = 0}
+			-- create new cast entry in the castDB
+			castbarDB.castDB[unitIdentifier] = {cast = spellName, startTime = startTime/1000, castTime = remainingCastTime, icon = spellIcon, school = nil, pushbackCounter = 0}
 		end
 	end
 end
 
---update casts and auras on units (target/focus/group etc.) after target, focus or mouseover has changed
+--update casts and auras on units (target/focus/group etc.) after cahnging target, focus or mouseover
 nameplate.unitUpdater = CreateFrame("Frame", nil, UIParent)
 nameplate.unitUpdater:RegisterEvent("PLAYER_TARGET_CHANGED")
 nameplate.unitUpdater:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
 nameplate.unitUpdater:RegisterEvent("PLAYER_FOCUS_CHANGED")
 nameplate.unitUpdater:RegisterEvent("UNIT_AURA")
 --tyrPlates.target:RegisterEvent("UNIT_TARGET")
-nameplate.target:SetScript("OnEvent", function()
+nameplate.unitUpdater:SetScript("OnEvent", function()
 
 	local unit
 	if event == "PLAYER_TARGET_CHANGED" then
@@ -448,24 +406,24 @@ nameplate.target:SetScript("OnEvent", function()
 		if unit == "player" then return end
 	end
 	
-	local name = UnitName(unit)
-	local guid = UnitGUID(unit)
-
-	if not name or not guid then return end
-	--add player to classDB
-	if UnitIsPlayer(unit) and not TyrPlatesDB.class[name] then
-		local _, class = UnitClass(unit)
-		TyrPlatesDB.class[name] = class
-	end
-
-	-- update auras and casts
-	if tyrPlates:IsPlayerOrPetGUID(guid) then
-		UpdateAuras(name, unit)
-		UpdateCast(name, unit)
+	local unitName = UnitName(unit)
+	local unitGuid = UnitGUID(unit)
+	
+	if not unitName or not unitGuid then return end --can happen, as reseting your target also trigger the "PLAYER_TARGET_CHANGED" event
+	
+	local dest
+	if tyrPlates:IsPlayerOrPetGUID(unitGuid) then
+		dest = unitName
+		-- if player, add name and class to the classDB
+		if UnitIsPlayer(unit) and not TyrPlatesDB.class[unitName] then
+			local _, class = UnitClass(unit)
+			TyrPlatesDB.class[unitName] = class
+		end	
 	else
-		UpdateAuras(guid, unit)
-		UpdateCast(guid, unit)
+		dest = unitGuid
 	end
+	UpdateUnitAuras(dest, unit)
+	UpdateUnitCast(dest, unit)
 end)
 
 --updates casts of a unit (target/focus/group etc.) after it starts casting
@@ -474,32 +432,36 @@ nameplate.unitCastUpdater:RegisterEvent("UNIT_SPELLCAST_START")
 nameplate.unitCastUpdater:RegisterEvent("UNIT_SPELLCAST_CHANNEL_START")
 nameplate.unitCastUpdater:SetScript("OnEvent", function()
 
-	local name = UnitName(arg1)
-	local guid = UnitGUID(arg1)
+	local unit = arg1
+	local unitName = UnitName(unit)
+	local unitGuid = UnitGUID(unit)
   
-	if guid and tyrPlates:IsPlayerOrPetGUID(guid) then
-		UpdateCast(name, arg1)
+	--if not unitName or not unitGuid then return end
+  
+	if tyrPlates:IsPlayerOrPetGUID(unitGuid) then
+		UpdateUnitCast(unitName, unit)
 	else
-		UpdateCast(guid, arg1)
+		UpdateUnitCast(unitGuid, unit)
 	end 
 end)
 
--- check if frame is target
+-- check if nameplateframe is the current target
 function IsTarget(frame)
 	return frame:IsShown() and frame:GetAlpha() == 1 and UnitExists("target") or false
 end
 
+
 function tableLength(auratable, isFriendlyPlayer)
-	local count = 0
+	local length = 0
 	for aura in pairs(auratable) do 
-		if not isFriendlyPlayer or spellDB.friendlyFilter[aura] then
-			count = count + 1 
+		if not isFriendlyPlayer or spellDB.trackAura.friendlyPlayer[aura] then
+			length = length + 1 
 		end
 	end	
-	return count
+	return length
 end
 
--- shows a colorgradient from green(100%) to red(0%)
+-- returns a color depending on the argument, from green(100%) to red(0%)
 function ColorGradient(perc)
 	local r1, g1, b1
 	local r2, g2, b2
@@ -518,9 +480,9 @@ end
 function ConvertToTotemPlate(frame)
 	local healthbar, castbar = frame:GetChildren()
 	local healthbarBorder, castbarBorder, spellIconRegion, glow, nameRegion, level, bossIconRegion, raidIconRegion = frame:GetRegions()
-	local _, _, icon = GetSpellInfo(spellDB.TotemIdByName[nameRegion:GetText()])
+	local _, _, icon = GetSpellInfo(spellDB.getTotemId[nameRegion:GetText()])
 	
-	healthbar:SetAlpha(0)	-- with the Hide()-function the icon floats if totem is tarteted
+	healthbar:SetAlpha(0)	-- with the Hide()-function the icon floats if totem is targeted
 	healthbarBorder:Hide()
 	castbar:Hide()
 	castbarBorder:Hide()
@@ -529,4 +491,15 @@ function ConvertToTotemPlate(frame)
 	nameRegion:Hide()
 
 	frame.icon:SetTexture(icon)
+end
+
+function ConvertToNormalPlate(frame)
+	local healthbar = frame:GetChildren()
+	local healthbarBorder, _, _, glow, nameRegion = frame:GetRegions()
+	
+	healthbar:SetAlpha(1)
+	healthbarBorder:Show()
+	glow:Show()
+	nameRegion:Show()
+	frame.icon:SetTexture(0,0,0,0)
 end
