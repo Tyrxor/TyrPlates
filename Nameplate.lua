@@ -131,10 +131,11 @@ function SetDefaultCastbar(frame)
 	castbarBorder:SetTexture("Interface\\AddOns\\TyrPlates\\img\\RegularBorder")
 	castbarBorder:SetWidth(155)
 	castbarBorder:SetHeight(64)
+	--castbarBorder:SetAlpha(0)
 
 	-- set layout of the spell icon
 	spellIconRegion:ClearAllPoints()
-	spellIconRegion:SetPoint("CENTER", healthbar, "CENTER", -81, -8)
+	spellIconRegion:SetPoint("CENTER", healthbar, "CENTER", -81, -7)
 	spellIconRegion:SetWidth(30)
 	spellIconRegion:SetHeight(30)
 	spellIconRegion:SetTexCoord( 0.1, 0.9, 0.1, 0.9 )
@@ -144,28 +145,28 @@ function SetDefaultCastbar(frame)
 		castbar.spellNameRegion = castbar:CreateFontString()
 		castbar.spellNameRegion:SetFont(FONT_ARIAL,12,"OUTLINE")
 		castbar.spellNameRegion:ClearAllPoints()
-		castbar.spellNameRegion:SetPoint("Center", castbar, "Center", 0, -12)
+		castbar.spellNameRegion:SetPoint("Center", castbar, "Center", 0, -13)
 	end
 end
 
 -- create new castbar used whenever the default blizzard castbar isn't shown
 function CreateCastbar(frame)
 
-	local healthbar, castbar = frame:GetChildren()
+	local healthbar = frame:GetChildren()
 
 	if healthbar.castbar == nil then
-		healthbar.castbar = CreateFrame("StatusBar", nil, healthbar)
+		healthbar.castbar = CreateFrame("Statusbar", nil, healthbar)
 		healthbar.castbar:Hide()
 		healthbar.castbar:SetWidth(120)
 		healthbar.castbar:SetHeight(10)
-		healthbar.castbar:SetPoint("CENTER", healthbar, "CENTER", 0, -17)
+		healthbar.castbar:SetPoint("CENTER", healthbar, "CENTER", 0, -15)
 		healthbar.castbar:SetStatusBarTexture("Interface\\AddOns\\TyrPlates\\img\\Statusbar")
-		healthbar.castbar:SetStatusBarColor(1,1,0,1)
+		healthbar.castbar:SetStatusBarColor(1,0.75,0,1)
 	
 		-- create border
-		if healthbar.castbar.border == nil then
+		if not healthbar.castbar.border then
 			healthbar.castbar.border = healthbar.castbar:CreateTexture()
-			healthbar.castbar.border:SetPoint("CENTER", healthbar, "CENTER", 0, -32)
+			healthbar.castbar.border:SetPoint("CENTER", healthbar.castbar, "CENTER", 0, -15)
 			healthbar.castbar.border:SetTexture("Interface\\AddOns\\TyrPlates\\img\\RegularBorder")
 			healthbar.castbar.border:SetWidth(155)
 			healthbar.castbar.border:SetHeight(64)
@@ -173,18 +174,19 @@ function CreateCastbar(frame)
 		end
 		
 		-- create text for the spell name
-		if healthbar.castbar.text == nil then  
+		if not healthbar.castbar.text then  
 			healthbar.castbar.text = healthbar.castbar:CreateFontString()
 			healthbar.castbar.text:SetFont(FONT_ARIAL,12,"OUTLINE")
-			healthbar.castbar.text:SetPoint("Center", castbar, "Center", 0, -12)
+			healthbar.castbar.text:SetPoint("CENTER", healthbar.castbar, "CENTER", 0, -12)
 		end
 
 		-- create icon for the cast spell
-		if healthbar.castbar.icon == nil then
+		if not healthbar.castbar.icon then
 			healthbar.castbar.icon = healthbar.castbar:CreateTexture("Icon", nil, frame)
-			healthbar.castbar.icon:SetPoint("CENTER", healthbar, "CENTER", -81, -8)
-			healthbar.castbar.icon:SetWidth(30)
-			healthbar.castbar.icon:SetHeight(30)
+			healthbar.castbar.icon:SetPoint("CENTER", healthbar.castbar, "CENTER", -79, 7.5)
+			healthbar.castbar.icon:SetTexCoord(.1,.9,.1,.9)
+			healthbar.castbar.icon:SetWidth(27)
+			healthbar.castbar.icon:SetHeight(27)
 		end
 	end	
 end
