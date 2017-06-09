@@ -267,7 +267,6 @@ function UpdateNameplateCastbar(frame, unitName, healthbar)
 			
 			-- set icon
 			healthbar.castbar.icon:SetTexture(castbarDB.castDB[unit]["icon"])
-			healthbar.castbar.icon:SetTexCoord(.1,.9,.1,.9)
 			
 			healthbar.castbar:Show()
 		end	
@@ -502,4 +501,8 @@ function ConvertToNormalPlate(frame)
 	glow:Show()
 	nameRegion:Show()
 	frame.icon:SetTexture(0,0,0,0)
+end
+
+function isNumber(number)
+	return tonumber(number) ~= nil
 end
