@@ -49,7 +49,7 @@ spellDB.trackAura.enemy = {
 	["Seduction"] = "Magic",
 	["Spell Lock"] = "Magic",
 	["Sacrifice"] = "Magic",
-	["Unstable Affliction"] = "Magic",
+	[31117] = "Magic",	--Unstable Affliction
 
 	--Mage
 	["Counterspell - Silenced"] = "Magic",
@@ -178,6 +178,7 @@ spellDB.trackAura.friendlyPlayer = {
 	["Seduction"] = "Magic",
 	["Spell Lock"] = "Magic",
 	["Sacrifice"] = "Magic",
+	[31117] = "Magic",	--Unstable Affliction
 	
 	--Mage
 	["Counterspell - Silenced"] = "Magic",
@@ -311,6 +312,7 @@ spellDB.getSpellId = {
 	["Vampiric Touch"] = 34917,
 	["Shadow Word: Pain"] = 10894,
 	["Curse of Recklessness"] = 27226,
+	["Fear"] = 5782,
 }
 
 -- stores auras that change casting speed with their cast speed modifier as value
@@ -586,6 +588,20 @@ spellDB.auraDuration = {}
 
 -- aura duration on players
 spellDB.auraDuration.PvP = {
+	["Entangling Roots"] = 10,
+	["Hibernate"] = 10,
+	["Curse of Tongues"] = 12,
+	["Fear"] = 10, 	
+	["Seduction"] = 10,
+	["Polymorph"] = 10,
+	["Mind Control"] = 10,
+	["Sap"] = 10,
+	["Scare Beast"] = 10,
+	["Freezing Trap Effect"] = 10,
+	["Wyvern Sting"] = 10,
+}
+--[[
+spellDB.auraDuration.PvP = {
 	[26989] = 10, 	--Entangling Roots Rank 7
 	[18658] = 10, 	--Hibernate Rank 3
 	[11719] = 12, 	--Curse of Tongues
@@ -600,6 +616,13 @@ spellDB.auraDuration.PvP = {
 	[14309] = 10, 	--Freezing Trap Effect
 	[27068] = 10, 	--Wyvern Sting
 }
+]]
+
+
+spellDB.auraDuration.PvEByName = {
+	["Shadow Word: Pain"] = 24,
+	["Vampiric Touch"] = 15,
+}	
 
 -- aura duration on NPCs
 spellDB.auraDuration.PvE = {
@@ -790,7 +813,6 @@ spellDB.auraDuration.PvE = {
 [10796] = 0, --Turquoise Raptor
 [10799] = 0, --Violet Raptor
 [10890] = 8, --Psychic Scream (Rank 4)
-[10894] = 18, --Shadow Word: Pain (Rank 8)
 [10901] = 30, --Power Word: Shield (Rank 10)
 [10937] = 1800, --Power Word: Fortitude (Rank 5)
 [10938] = 1800, --Power Word: Fortitude (Rank 6)
@@ -1283,10 +1305,8 @@ spellDB.auraDuration.PvE = {
 [48090] = 45, --Demonic Pact
 [48101] = 1800, --Stamina (Level 6)
 [48111] = 30, --Prayer of Mending (Rank 3)
-[48125] = 18, --Shadow Word: Pain (Rank 12)
 [48135] = 7, --Holy Fire (Rank 11)
 [48156] = 3, --Mind Flay (Rank 9)
-[48160] = 15, --Vampiric Touch (Rank 5)
 [48161] = 1800, --Power Word: Fortitude (Rank 8)
 [48162] = 3600, --Prayer of Fortitude (Rank 4)
 [48168] = 1800, --Inner Fire (Rank 9)
@@ -1513,9 +1533,6 @@ spellDB.auraDuration.PvE = {
 [29228] = 18,  --Flame Shock (Rank 6)
 [1120] = 15,  --Drain Soul (Rank 1)
 [29175] = 3600,  --Ribbon Dance [This duration changed based on how long you've used the ribbon poll]
-[34914] = 20,  --Vampiric Touch (Rank 1)
-[34916] = 15,  --Vampiric Touch (Rank 2)
-[34917] = 15,  --Vampiric Touch (Rank 3)
 [25221] = 15,  --Renew (Rank 11)
 [48058] = 30, --Crystal Bloom
 [774] = 15, --Rejuvenation (Rank 1)
@@ -1531,13 +1548,11 @@ spellDB.auraDuration.PvE = {
 [586] = 10, --Fade
 [20762] = 1800, --Soulstone Resurrection
 [469] = 120, --Commanding Shout (Rank 1)
-[25368] = 24, --Shadow Word: Pain (Rank 10)
 [11572] = 15, --Rend (Rank 5)
 [42728] = 60, --Dreadful Roar
 [20798] = 1800, --Demon Skin
 [28747] = 600, --Frenzy
 [11349] = 3600, --Armor
-[589] = 24, --Shadow Word: Pain (Rank 1)
 [19854] = 600, --Blessing of Wisdom (Rank 5)
 [25217] = 30, --Power Word: Shield (Rank 11)
 [47781] = 6, --Spellbreaker
@@ -1668,7 +1683,6 @@ spellDB.auraDuration.PvE = {
 [6432] = 10, --Smite Stomp
 [113] = 15, --Chains of Ice (Rank 1)
 [28189] = 1800, --Fel Armor (Rank 2)
-[970] = 18, --Shadow Word: Pain (Rank 3)
 [5171] = 12, --Slice and Dice (Rank 1)
 [9821] = 15, --Dash (Rank 2)
 [6713] = 5, --Disarm
@@ -1687,7 +1701,6 @@ spellDB.auraDuration.PvE = {
 [10909] = 60, --Mind Vision (Rank 2)
 [19974] = 15, --Entangling Roots (Rank 2)
 [9128] = 120, --Battle Shout
-[594] = 18, --Shadow Word: Pain (Rank 2)
 [20006] = 12, --Unholy Curse
 [122] = 8, --Frost Nova (Rank 1)
 [30991] = 0, --Stealth
@@ -1919,7 +1932,6 @@ spellDB.auraDuration.PvE = {
 [18658] = 10, --Hibernate (Rank 3)
 [676] = 13, --Disarm
 [13326] = 1800, --Arcane Intellect
-[14032] = 18, --Shadow Word: Pain
 [18972] = 20, --Slow
 [6213] = 15, --Fear (Rank 2)
 [5403] = 6, --Crash of Waves
@@ -1970,7 +1982,6 @@ spellDB.auraDuration.PvE = {
 [9490] = 30, --Demoralizing Roar (Rank 3)
 [12528] = 10, --Silence
 [8078] = 10, --Thunderclap
-[2767] = 18, --Shadow Word: Pain (Rank 5)
 [11554] = 30, --Demoralizing Shout (Rank 3)
 [8492] = 8, --Cone of Cold (Rank 2)
 [9007] = 18, --Pounce Bleed (Rank 1)
@@ -2052,7 +2063,6 @@ spellDB.auraDuration.PvE = {
 [19876] = 0, --Shadow Resistance Aura (Rank 1)
 [13439] = 5, --Frostbolt
 [12421] = 2, --Mithril Frag Bomb
-[10892] = 18, --Shadow Word: Pain (Rank 6)
 [10452] = 20, --Flame Buffet
 [11922] = 15, --Entangling Roots
 [20763] = 1800, --Soulstone Resurrection
@@ -2062,7 +2072,6 @@ spellDB.auraDuration.PvE = {
 [10413] = 8, --Earth Shock (Rank 6)
 [12461] = 2, --Backhand
 [15531] = 8, --Frost Nova
-[992] = 18, --Shadow Word: Pain (Rank 4)
 [14517] = 30, --Crusader Strike
 [15039] = 12, --Flame Shock
 [11974] = 30, --Power Word: Shield
@@ -2102,7 +2111,6 @@ spellDB.auraDuration.PvE = {
 [11820] = 6, --Electrified Net
 [11443] = 15, --Cripple
 [9080] = 10, --Hamstring
-[11639] = 18, --Shadow Word: Pain
 [46630] = 90, --Torch Tossing Practice
 [11647] = 30, --Power Word: Shield
 [15262] = 7, --Holy Fire (Rank 2)
