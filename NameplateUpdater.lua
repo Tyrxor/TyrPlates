@@ -101,7 +101,7 @@ function UpdateNameplateAuras(frame, unitName, healthbar)
 				end
 				
 				-- set color of border and show it
-				local borderColor = DebuffTypeColor[auraDB[unit][aura]["auratype"]]
+				local borderColor = DebuffTypeColor[auraDB[unit][aura]["auraType"]]
 				if borderColor then
 					frame.auras[j].border:SetVertexColor(borderColor.r, borderColor.g, borderColor.b)
 					frame.auras[j].border:Show()
@@ -234,10 +234,11 @@ end
 function UpdateNameplateCastbar(frame, unitName, healthbar)
 
 	local unit	
-	if nameplate.nameplateByGUID[frame] then 
-		unit = nameplate.nameplateByGUID[frame]
-	else
+	local unitGuid = nameplate.nameplateByGUID[frame]
+	if castbarDB.castDB[unitName] then 
 		unit = unitName
+	else
+		unit = unitGuid
 	end
 
 	-- show and update castbar if a cast exist and the default blizzard one isn't shown (not target)
@@ -301,8 +302,8 @@ function UpdateUnitAuras(unitIdentifier, unit)
 	-- save the interrupt aura if it exists
 	auraFound["interrupt"] = true
 	
-	UpdateUnitAurasByAuraType(unitIdentifier, unit, currentTime, auraFound, UnitDebuff)
-	UpdateUnitAurasByAuraType(unitIdentifier, unit, currentTime, auraFound, UnitBuff)
+	UpdateUnitAurasByauraType(unitIdentifier, unit, currentTime, auraFound, UnitDebuff)
+	UpdateUnitAurasByauraType(unitIdentifier, unit, currentTime, auraFound, UnitBuff)
 
 	--delete auras from the auraDB that were not found on the enemy
 	for aura in pairs(auraDB[unitIdentifier]) do
@@ -313,7 +314,7 @@ function UpdateUnitAuras(unitIdentifier, unit)
 	end
 end
 
-function UpdateUnitAurasByAuraType(unitIdentifier, unit, currentTime, auraFound, auraTypeFunction)
+function UpdateUnitAurasByauraType(unitIdentifier, unit, currentTime, auraFound, auraTypeFunction)
 
 	local i = 1
 	local auraName, _, _, _, _, _, timeLeft = auraTypeFunction(unit, i)
@@ -340,12 +341,12 @@ function UpdateUnitAurasByAuraType(unitIdentifier, unit, currentTime, auraFound,
 			end		
 			
 			local _, _, auraIcon = GetSpellInfo(spellId)
-			local auraType = spellDB.trackAura.own[auraName] or spellDB.trackAura.enemy[auraName] 
+			local auraType = spellDB.trackAura.own[auraName] or spellDB.trackAura.own[spellId] or spellDB.trackAura.enemy[auraName] or spellDB.trackAura.enemy[spellId] 
 			
 			if timeLeft then
-				auraDB[unitIdentifier][auraName] = {startTime = currentTime, duration = timeLeft, icon = auraIcon, auratype = auraType}
+				auraDB[unitIdentifier][auraName] = {startTime = currentTime, duration = timeLeft, icon = auraIcon, auraType = auraType}
 			else
-				auraDB[unitIdentifier][auraName] = {startTime = 0, duration = 0, icon = auraIcon, auratype = auraType}
+				auraDB[unitIdentifier][auraName] = {startTime = 0, duration = 0, icon = auraIcon, auraType = auraType}
 			end
 			auraFound[auraName] = true			
 		end 

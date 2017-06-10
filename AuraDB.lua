@@ -18,11 +18,13 @@ function auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 	--check if aura has to be shown/applied
 	if shouldBeTracked(auraName, spellId, srcGUID, currentTime) then
 		
+		--ace:print("add "..spellId)
+		
 		local auraDuration
 		local ccCategories
 		local dest
 				
-		local auraType = spellDB.trackAura.own[auraName] or spellDB.trackAura.enemy[auraName] 
+		local auraType = spellDB.trackAura.own[auraName] or spellDB.trackAura.own[spellId] or spellDB.trackAura.enemy[auraName] or spellDB.trackAura.enemy[spellId] 
 		
 		-- check if aura has a known auraType, if not it is set to none
 		if auraType == true then 
@@ -65,7 +67,7 @@ function auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 			
 		-- add aura to auraDB
 		if not auraDB[dest] then auraDB[dest] = {} end			
-		auraDB[dest][auraName] = {startTime = currentTime, duration = auraDuration, icon = AuraIcon, auratype = auraType}
+		auraDB[dest][auraName] = {startTime = currentTime, duration = auraDuration, icon = AuraIcon, auraType = auraType}
 		
 		-- if aura was seduction then find it's caster, add caster to the channelerDB
 		if auraName == "Seduction" then
@@ -85,7 +87,7 @@ function shouldBeTracked(auraName, spellId, srcGUID, currentTime)
 	if spellDB.trackAura.enemy[auraName] or spellDB.trackAura.enemy[spellId] then return true end
 	
 	-- track if aura was found in trackAura.own table and belongs to you
-	if (spellDB.trackAura.own[auraName] or spellDB.trackAura.own[auraName]) and
+	if (spellDB.trackAura.own[auraName] or spellDB.trackAura.own[spellId]) and
 	   (tyrPlates:IsOwnGUID(srcGUID) or IsOwnCast(auraName, currentTime))
 	   then return true 
 	end
@@ -174,7 +176,7 @@ function auraDB:RemoveAura(destGUID, destName, spellId, aura, currentTime)
 		end	
 
 		-- delete all auras with the given name unless you track it and it's not your own 
-		if not spellDB.trackAura.own[aura] or IsOwnAura(aura, dest, currentTime) then
+		if not spellDB.trackAura.own[aura] and not spellDB.trackAura.own[spellId] or IsOwnAura(aura, dest, currentTime) then
 			auraDB[dest][aura] = nil
 			
 			-- check if the removed aura has a diminishing return

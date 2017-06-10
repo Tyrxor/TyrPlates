@@ -35,6 +35,7 @@ function tyrPlates:IsOwnGUID(guid)
 end
 
 function tyrPlates:ClearTable(Table)
+	if not Table then ace:print("empty table") return end
 	for element in pairs (Table) do
 		Table[element] = nil
 	end
