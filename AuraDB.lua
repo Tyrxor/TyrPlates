@@ -14,23 +14,13 @@ function auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 	if not destName then return end
 
 	local auraName, _, AuraIcon = GetSpellInfo(spellId)
-	
+
 	--check if aura has to be shown/applied
 	if shouldBeTracked(auraName, spellId, srcGUID, currentTime) then
 		
 		local auraDuration
-		local seductionCaster
-		local diminishingReturnGroup
 		local ccCategories
 		local dest
-	
-		-- intercept seduction and find it's caster, add caster to the channelerDB
-		if auraName == "Seduction" then
-			seductionCaster = findSeductionCaster(currentTime)
-			if seductionCaster then
-				castbarDB:addChanneler(seductionCaster, seductionCaster, destGUID, destName, auraName)
-			end
-		end
 				
 		local auraType = spellDB.trackAura.own[auraName] or spellDB.trackAura.enemy[auraName] 
 		
@@ -77,10 +67,14 @@ function auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 		if not auraDB[dest] then auraDB[dest] = {} end			
 		auraDB[dest][auraName] = {startTime = currentTime, duration = auraDuration, icon = AuraIcon, auratype = auraType}
 		
-		-- add a seduction cast if a seductionCaster was found
-		if seductionCaster then
-			castbarDB.castDB[seductionCaster] = {cast = auraName, startTime = currentTime, castTime = auraDuration, icon = AuraIcon, school = 32, pushbackCounter = 0}
-		end	
+		-- if aura was seduction then find it's caster, add caster to the channelerDB
+		if auraName == "Seduction" then
+			local seductionCaster = findSeductionCaster(currentTime)
+			if seductionCaster then
+				castbarDB.castDB[seductionCaster] = {cast = auraName, startTime = currentTime, castTime = auraDuration, icon = AuraIcon, school = 32, pushbackCounter = 0}
+				castbarDB:addChanneler(seductionCaster, seductionCaster, destGUID, destName, auraName)
+			end
+		end
 	end
 end
 
