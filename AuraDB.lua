@@ -16,11 +16,12 @@ function auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 	local auraName, _, AuraIcon = GetSpellInfo(spellId)
 	
 	--check if aura has to be shown/applied
-	if spellDB.trackAura.enemy[auraName] or (spellDB.trackAura.own[auraName] and (tyrPlates:IsOwnGUID(srcGUID) or IsOwnCast(auraName, currentTime))) then
+	if shouldBeTracked(auraName, spellId, srcGUID, currentTime) then
 		
 		local auraDuration
 		local seductionCaster
 		local diminishingReturnGroup
+		local ccCategories
 		local dest
 	
 		-- intercept seduction and find it's caster, add caster to the channelerDB
@@ -43,11 +44,11 @@ function auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 		if tyrPlates:IsPlayerOrPetGUID(destGUID) then
 			dest = destName
 			ccCategories = spellDB.ccCategories.PvP
-			auraDuration = spellDB.auraDuration.PvP[spellId] or spellDB.auraDuration.PvE[spellId]			
+			auraDuration = spellDB.auraDuration.PvP[auraName] or spellDB.auraDuration.PvE[spellId] or spellDB.auraDuration.PvEByName[auraName]	
 		else
 			dest = destGUID
 			ccCategories = spellDB.ccCategories.PvE
-			auraDuration = spellDB.auraDuration.PvE[spellId]
+			auraDuration = spellDB.auraDuration.PvE[spellId] or spellDB.auraDuration.PvEByName[auraName]		
 			if not auraCounter[destName] then auraCounter[destName] = 0 end
 			
 			-- increase auraCounter for this unit
@@ -69,7 +70,7 @@ function auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 
 		-- check if the aura is influenced by a diminishing return
 		if ccCategories[auraName] then
-			auraDuration = incorparateDiminisingReturn(dest, aura, auraDuration, ccCategories, currentTime)
+			auraDuration = incorparateDiminisingReturn(dest, auraName, auraDuration, ccCategories, currentTime)
 		end
 			
 		-- add aura to auraDB
@@ -83,11 +84,25 @@ function auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 	end
 end
 
+-- checks if the given aura should be tracked
+function shouldBeTracked(auraName, spellId, srcGUID, currentTime)
+
+	-- track if aura was found in trackAura.enemy table
+	if spellDB.trackAura.enemy[auraName] or spellDB.trackAura.enemy[spellId] then return true end
+	
+	-- track if aura was found in trackAura.own table and belongs to you
+	if (spellDB.trackAura.own[auraName] or spellDB.trackAura.own[auraName]) and
+	   (tyrPlates:IsOwnGUID(srcGUID) or IsOwnCast(auraName, currentTime))
+	   then return true 
+	end
+	return false
+end
+
 -- checks if the duration of the aura has to be reduced because of the diminishing returns mechanic
 -- adds an entry in the DRDB that for every player tracks auras gained from each CC group (e.g. stuns, fear, roots)
 function incorparateDiminisingReturn(dest, aura, auraDuration, ccCategories, currentTime)
 				
-	local ccGroup = ccCategories[auraName]
+	local ccGroup = ccCategories[aura]
 	if ccGroup == "self" then
 		-- aura with cc group self form their own group
 		ccGroup = "DR"..aura
@@ -97,7 +112,7 @@ function incorparateDiminisingReturn(dest, aura, auraDuration, ccCategories, cur
 	if not DRDB[dest] then
 		DRDB[dest] = {}
 	end				
-	
+
 	-- create entry for the CC group
 	if not DRDB[dest][ccGroup] then
 		DRDB[dest][ccGroup] = 1
@@ -148,10 +163,11 @@ function auraDB:RemoveAura(destGUID, destName, spellId, aura, currentTime)
 	else
 		dest = destGUID
 		ccCategories = spellDB.ccCategories.PvE
-		auraDB[dest][aura] = nil
 		
 		-- increase auraCounter for this unit
-		auraCounter[destName] = auraCounter[destName] - 1
+		if auraCounter[destName] then
+			auraCounter[destName] = auraCounter[destName] - 1
+		end
 		--ace:print(auraCounter[destName])
 	end
 

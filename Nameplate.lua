@@ -131,7 +131,6 @@ function SetDefaultCastbar(frame)
 	castbarBorder:SetTexture("Interface\\AddOns\\TyrPlates\\img\\RegularBorder")
 	castbarBorder:SetWidth(155)
 	castbarBorder:SetHeight(64)
-	--castbarBorder:SetAlpha(0)
 
 	-- set layout of the spell icon
 	spellIconRegion:ClearAllPoints()

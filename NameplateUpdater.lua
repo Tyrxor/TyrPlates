@@ -73,14 +73,14 @@ end
 function UpdateNameplateAuras(frame, unitName, healthbar)
 
 	local unit
-	if nameplate.nameplateByGUID[frame] or auraDB[unitName] then
-		if nameplate.nameplateByGUID[frame] then 
-			unit = nameplate.nameplateByGUID[frame]
-		else
+	local unitGuid = nameplate.nameplateByGUID[frame]
+	
+	if auraDB[unitGuid] or auraDB[unitName] then
+		if auraDB[unitName] then 
 			unit = unitName
+		else
+			unit = unitGuid
 		end
-		
-		if not auraDB[unit] then auraDB[unit] = {} end
 
 		local currentTime = GetTime()
 		local j, k = 1, 1
@@ -307,8 +307,8 @@ function UpdateUnitAuras(unitIdentifier, unit)
 	--delete auras from the auraDB that were not found on the enemy
 	for aura in pairs(auraDB[unitIdentifier]) do
 		if not auraFound[aura] then
-			--ace:print("remove ".. aura .. " from "..identifier)
-			auraDB[unitIdentifier][aura] = nil
+			--ace:print("remove ".. aura .. " from "..unitIdentifier)
+			--auraDB[unitIdentifier][aura] = nil
 		end
 	end
 end
