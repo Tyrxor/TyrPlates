@@ -6,7 +6,10 @@
 ## SavedVariables: TyrPlatesDB, tyrPlates_config
 
 TyrPlates.lua
-SpellDB.lua
+SpellData\SpellDB.lua
+SpellData\AuraDurations.lua
+SpellData\CrowdControlGroups.lua
+SpellData\AurasToTrack.lua
 HealthDiffDB.lua
 CastbarDB.lua
 AuraDB.lua

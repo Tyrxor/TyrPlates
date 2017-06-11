@@ -1,5 +1,6 @@
 -- create main frame
 tyrPlates = CreateFrame("Frame", nil, UIParent)
+tyrPlates.spellDB = {}
 
 tyrPlates:RegisterEvent("ADDON_LOADED")
 tyrPlates:SetScript("OnEvent", function()
