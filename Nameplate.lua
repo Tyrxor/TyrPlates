@@ -198,7 +198,6 @@ function CreateHealthText(frame)
 	if not healthbar.text then
 		healthbar.text = healthbar:CreateFontString()
 		healthbar.text:SetPoint("RIGHT", healthbar, "RIGHT")
-		healthbar.text:SetNonSpaceWrap(false)
 		healthbar.text:SetFontObject(GameFontWhite)
 		healthbar.text:SetTextColor(1,1,1,1)
 		healthbar.text:SetFont(FONT_ARIAL, 10)
@@ -221,7 +220,6 @@ function CreateAuraSlots(frame)
 		  
 				-- create aura counter showing the duration
 				frame.auras[j].counter = frame:CreateFontString( nil, "OVERLAY", this )
-				frame.auras[j].counter:SetNonSpaceWrap(true)
 				frame.auras[j].counter:SetFont( FONT_ARIAL,14, "OUTLINE" )
 				frame.auras[j].counter:SetPoint( "CENTER", frame.auras[j], "CENTER", 0, -22 )
 		  
