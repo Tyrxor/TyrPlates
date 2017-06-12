@@ -1,5 +1,5 @@
 ## Interface: 20400
-## Title: TyrPlates
+## Title: |cffffffffTyr|rPlates
 ## Author: Thomas Fessel, 2017
 ## Notes: Nameplates with castbars and auras
 ## Version: 1.0
