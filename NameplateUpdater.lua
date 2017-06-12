@@ -242,30 +242,34 @@ function UpdateNameplateCastbar(frame, unitName, healthbar)
 		local currentTime = GetTime()
 		local startTime = castbarDB.castDB[unit]["startTime"]
 		local castProgress = currentTime - startTime
+		local castTime = castbarDB.castDB[unit]["castTime"]
 		
 		-- delete entry if cast has finished
-		if startTime + castbarDB.castDB[unit]["castTime"] <= currentTime then
+		if castProgress >= castTime + 0.1 then	
 			castbarDB.castDB[unit] = nil
 			healthbar.castbar:Hide()
+			healthbar.castbar:SetStatusBarColor(1,0.75,0,1)
+			return
+		elseif castProgress >= castTime then	
+			-- show castbar green for a short time after cast has finished to show it's success
+			healthbar.castbar:SetStatusBarColor(0,1,0,1)
+		end
+		-- set castProgressBar depending on if spell is a cast or channel
+		local spellName = castbarDB.castDB[unit]["cast"]
+		healthbar.castbar:SetMinMaxValues(0, castTime)
+		if spellDB.channelDuration[spellName] or spellDB.channelWithTarget[spellName] then
+			healthbar.castbar:SetValue(castTime - castProgress)
 		else
-			-- set castProgressBar depending on if spell is a cast or channel
-			local spellName = castbarDB.castDB[unit]["cast"]
-			local castTime = castbarDB.castDB[unit]["castTime"]
-			healthbar.castbar:SetMinMaxValues(0, castTime)
-			if spellDB.channelDuration[spellName] or spellDB.channelWithTarget[spellName] then
-				healthbar.castbar:SetValue(castTime - castProgress)
-			else
-				healthbar.castbar:SetValue(castProgress)
-			end
-				
-			-- set spelltext
-			healthbar.castbar.text:SetText(castbarDB.castDB[unit]["cast"])
-			
-			-- set icon
-			healthbar.castbar.icon:SetTexture(castbarDB.castDB[unit]["icon"])
-			
-			healthbar.castbar:Show()
-		end	
+			healthbar.castbar:SetValue(castProgress)
+		end
+	
+		-- set spelltext
+		healthbar.castbar.text:SetText(castbarDB.castDB[unit]["cast"])
+		
+		-- set icon
+		healthbar.castbar.icon:SetTexture(castbarDB.castDB[unit]["icon"])
+		
+		healthbar.castbar:Show()
 	else
 		healthbar.castbar:Hide()
 	end
@@ -340,13 +344,8 @@ function UpdateUnitAurasByauraType(unitIdentifier, unit, currentTime, auraFound,
 		elseif spellDB.trackAura.enemy[auraName] or (spellDB.trackAura.own[auraName] and timeLeft) then
 			
 			local auraIcon = TyrPlatesDB.icons[auraName] or tyrPlates:GetAuraIcon(auraName)
-			if not auraIcon then
-				ace:print("couldn't find auraIcon for "..auraName)
-				auraFound[auraName] = true
-				return
-			else 
-				TyrPlatesDB.icons[auraName] = auraIcon
-			end		
+			-- add auraIcon to the iconDB
+			TyrPlatesDB.icons[auraName] = auraIcon
 			
 			local auraType = spellDB.trackAura.own[auraName] or spellDB.trackAura.enemy[auraName]
 			
