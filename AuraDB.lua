@@ -221,18 +221,6 @@ function auraDB:RemoveAllAuras(destGUID, destName)
 	end  
 end
 
--- returns true if the given aura was applied by the player
-function IsOwnAura(dest, aura, currentTime)
-	local offset = 0.2
-	if auraDB[dest] and auraDB[dest][aura] then
-		local startTime = auraDB[dest][aura]["startTime"]
-		local duration = auraDB[dest][aura]["duration"]
-		local endTime = startTime + duration
-		return currentTime < endTime + offset and currentTime > endTime - offset
-	end
-	return false
-end
-
 -- returns true if the given spell was cast by the player
 function IsOwnCast(spell, currentTime)
 	local player = UnitName("player")
