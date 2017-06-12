@@ -4,9 +4,20 @@ tyrPlates.spellDB = {}
 
 tyrPlates:RegisterEvent("ADDON_LOADED")
 tyrPlates:SetScript("OnEvent", function()
+	if arg1 ~= "TyrPlates" then return end
 	if not ( TyrPlatesDB ) then TyrPlatesDB = {} end
 	if not ( TyrPlatesDB.class ) then TyrPlatesDB.class = {} end
+	tyrPlates:UnregisterEvent("ADDON_LOADED")
 end)
+
+function tyrPlates:GetAuraIcon(aura)
+	for i = 1, 50000 do
+		local auraName, _, auraIcon = GetSpellInfo(i)
+		if aura == auraName then
+			return auraIcon
+		end
+	end
+end
 
 tyrPlates.inCombat = false
 
