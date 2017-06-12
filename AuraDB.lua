@@ -25,7 +25,7 @@ function auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 		local ccCategories
 		local dest
 				
-		local auraType = spellDB.trackAura.own[auraName] or spellDB.trackAura.own[spellId] or spellDB.trackAura.enemy[auraName] or spellDB.trackAura.enemy[spellId] 
+		local auraType = tyrPlates:track("own", auraName, spellId) or tyrPlates:track("enemy", auraName, spellId)
 		
 		-- check if aura has a known auraType, if not it is set to none
 		if auraType == true then 
@@ -85,12 +85,12 @@ end
 function shouldBeTracked(auraName, spellId, srcGUID, currentTime, isOwn)
 
 	-- track if aura was found in trackAura.enemy table
-	if spellDB.trackAura.enemy[auraName] or spellDB.trackAura.enemy[spellId] then 
+	if tyrPlates:track("enemy", auraName, spellId) then 
 		return true 
 	end
 	
 	-- track if aura was found in trackAura.own table and belongs to you
-	if (spellDB.trackAura.own[auraName] or spellDB.trackAura.own[spellId]) and isOwn then
+	if tyrPlates:track("own", auraName, spellId) and isOwn then
 	   return true 
 	end
 	return false
@@ -163,10 +163,10 @@ function auraDB:RemoveAura(destGUID, destName, spellId, aura, currentTime)
 		ccCategories = spellDB.ccCategories.PvE
 		
 		-- increase auraCounter for this unit
-		if auraCounter[destName] then
+		if auraCounter[destName] and auraCounter[destName] > 0 then
 			auraCounter[destName] = auraCounter[destName] - 1
+			--ace:print(auraCounter[destName])
 		end
-		--ace:print(auraCounter[destName])
 	end
 
 	-- check if the unit even has the removed aura in our DB
@@ -178,10 +178,10 @@ function auraDB:RemoveAura(destGUID, destName, spellId, aura, currentTime)
 		end	
 
 		-- delete all auras with the given name unless you track it and it's not your own 
-		if not auraDB[dest][aura]["isOwn"] or (spellDB.trackAura.own[aura] or spellDB.trackAura.own[spellId]) then
+		if auraDB[dest][aura]["isOwn"] or not tyrPlates:track("own", aura, spellId) then
 			auraDB[dest][aura] = nil
 			--ace:print("removed "..aura)
-			
+	
 			-- check if the removed aura has a diminishing return
 			if ccCategories[aura] then
 				-- get CC group
@@ -209,8 +209,10 @@ function auraDB:RemoveAllAuras(destGUID, destName)
 	elseif auraDB[destGUID] then
 		for aura in pairs(auraDB[destGUID]) do
 			auraDB[destGUID][aura] = nil
-			auraCounter[destName] = auraCounter[destName] - 1
-			--ace:print(auraCounter[destName])
+			if auraCounter[destName] and auraCounter[destName] > 0 then
+				auraCounter[destName] = auraCounter[destName] - 1
+				--ace:print(auraCounter[destName])
+			end
 			--ace:print("counter on "..destName.." is "..auraCounter[destName])
 		end
 		auraDB[destGUID] = nil

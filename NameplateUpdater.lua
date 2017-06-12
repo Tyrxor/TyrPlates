@@ -283,7 +283,7 @@ function UpdateNameplateHealth(healthbar)
 	local healthInPercent = floor(currentHealth / max*100)
 	
 	-- show no text if unit has 0% or 100% health
-	if healthInPercent ~= 100 and healthInPercent ~= 0 then
+	if healthInPercent ~= 100 then
 		healthbar.text:SetText(healthInPercent .. "%")
 	else
 		healthbar.text:SetText("")
@@ -336,17 +336,17 @@ function UpdateUnitAurasByauraType(unitIdentifier, unit, currentTime, auraFound,
 			auraFound[auraName] = true
 		-- if this aura wasn't found but should be shown, create a new entry
 		elseif spellDB.trackAura.enemy[auraName] or (spellDB.trackAura.own[auraName] and timeLeft) then
-		
-			-- get spellId to get the aura icon
-			local spellId = spellDB.getSpellId[auraName]
-			if not spellId then
-				ace:print("SpellID missing for "..auraName)
+			
+			local auraIcon = TyrPlatesDB.icons[auraName] or tyrPlates:GetAuraIcon(auraName)
+			if not auraIcon then
+				ace:print("couldn't find auraIcon for "..auraName)
 				auraFound[auraName] = true
 				return
+			else 
+				TyrPlatesDB.icons[auraName] = auraIcon
 			end		
 			
-			local _, _, auraIcon = GetSpellInfo(spellId)
-			local auraType = spellDB.trackAura.own[auraName] or spellDB.trackAura.own[spellId] or spellDB.trackAura.enemy[auraName] or spellDB.trackAura.enemy[spellId] 
+			local auraType = spellDB.trackAura.own[auraName] or spellDB.trackAura.enemy[auraName]
 			
 			if timeLeft then
 				auraDB[unitIdentifier][auraName] = {startTime = currentTime, duration = timeLeft, icon = auraIcon, auraType = auraType, isOwn = true}

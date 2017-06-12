@@ -7,6 +7,7 @@ tyrPlates:SetScript("OnEvent", function()
 	if arg1 ~= "TyrPlates" then return end
 	if not ( TyrPlatesDB ) then TyrPlatesDB = {} end
 	if not ( TyrPlatesDB.class ) then TyrPlatesDB.class = {} end
+	if not ( TyrPlatesDB.icons ) then TyrPlatesDB.icons = {} end
 	tyrPlates:UnregisterEvent("ADDON_LOADED")
 end)
 
@@ -16,6 +17,21 @@ function tyrPlates:GetAuraIcon(aura)
 		if aura == auraName then
 			return auraIcon
 		end
+	end
+end
+
+function tyrPlates:track(what, auraName, spellId)
+
+	if what == "own" then
+		return tyrPlates.spellDB.trackAura.own[auraName] or tyrPlates.spellDB.trackAura.own[spellId]
+	end
+	
+	if what == "enemy" then
+		return tyrPlates.spellDB.trackAura.enemy[auraName] or tyrPlates.spellDB.trackAura.enemy[spellId]
+	end
+	
+	if what == "friendlyPlayer" then
+		return tyrPlates.spellDB.trackAura.friendlyPlayer[auraName] or tyrPlates.spellDB.trackAura.friendlyPlayer[spellId]
 	end
 end
 
@@ -29,6 +45,7 @@ tyrPlates.combatTracker:SetScript("OnEvent", function()
 	if event == "PLAYER_REGEN_ENABLED" then
 		tyrPlates.inCombat = false
 		tyrPlates:ClearTable(tyrPlates.healthDiffDB)
+		tyrPlates:ClearTable(tyrPlates.auraCounter)
 	else
 		tyrPlates.inCombat = true
 	end

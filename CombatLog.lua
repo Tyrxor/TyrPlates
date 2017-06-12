@@ -10,15 +10,15 @@ local auraDB = tyrPlates.auraDB
 combatlog:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 combatlog:SetScript("OnEvent", function()
 	--ace:print(arg1)		--timestamp
-		ace:print(arg2)	--event
+		--ace:print(arg2)	--event
 		--ace:print(arg3)	--srcGUID
-		ace:print(arg4)	--srcName
+		--ace:print(arg4)	--srcName
 	--ace:print(arg5)		--srcFlags
 		--ace:print(arg6)	--destGUID
-	    ace:print(arg7)	--destName
+	    --ace:print(arg7)	--destName
 	--ace:print(arg8)		--destFlags
 	--ace:print(arg9)		--spellId
-		ace:print(arg10)	--spellName
+		--ace:print(arg10)	--spellName
 	--ace:print(arg11)		--spellschool
 	--ace:print(arg12)
 	--ace:print(arg13)
@@ -72,6 +72,10 @@ combatlog:SetScript("OnEvent", function()
 			tyrPlates:addHeal(destGUID, destName, amount)
 			return
 		end	
+		if event == "SPELL_PERIODIC_HEAL" then
+			tyrPlates:addHeal(destGUID, destName, amount)
+			return
+		end	
 	end
    
 	-- triggers if a unit starts casting
@@ -104,6 +108,7 @@ combatlog:SetScript("OnEvent", function()
 		return
     end
 	
+	-- absorb spell damage?
 	if event == "SPELL_MISSED" then
 		castbarDB:StopCast(srcGUID, srcName)
 		return
@@ -145,7 +150,7 @@ combatlog:SetScript("OnEvent", function()
 	
 	if event == "SPELL_AURA_REFRESH" then
 		auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
-		if tyrPlates.auraCounter[destName] then
+		if tyrPlates.auraCounter[destName] and tyrPlates.auraCounter[destName] > 0 then
 			tyrPlates.auraCounter[destName] = tyrPlates.auraCounter[destName] - 1
 			--ace:print(tyrPlates.auraCounter[destName])
 			--ace:print("counter on "..destName.." is "..tyrPlates.auraCounter[destName])
@@ -177,9 +182,14 @@ combatlog:SetScript("OnEvent", function()
 		return
     end
 	
-	-- spell miss?
+	-- spell miss!
 	if event == "DAMAGE_SHIELD_MISSED" then
 		castbarDB:StopCast(srcGUID, srcName)
+		if tyrPlates.auraCounter[destName] and tyrPlates.auraCounter[destName] > 0 then
+			tyrPlates.auraCounter[destName] = tyrPlates.auraCounter[destName] - 1
+			--ace:print(tyrPlates.auraCounter[destName])
+			--ace:print("counter on "..destName.." is "..tyrPlates.auraCounter[destName])
+		end
 	end
 	
 	-- triggers if a unit died
