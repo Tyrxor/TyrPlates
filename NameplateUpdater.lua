@@ -309,7 +309,7 @@ function UpdateUnitAuras(unitIdentifier, unit)
 	for aura in pairs(auraDB[unitIdentifier]) do
 		if not auraFound[aura] then
 			--ace:print("remove ".. aura .. " from "..unitIdentifier)
-			--auraDB[unitIdentifier][aura] = nil
+			auraDB[unitIdentifier][aura] = nil
 		end
 	end
 end
@@ -322,11 +322,16 @@ function UpdateUnitAurasByauraType(unitIdentifier, unit, currentTime, auraFound,
 	while auraName do
 		-- if an entry for this aura exists and belongs to the player, update it's entry
 		if auraDB[unitIdentifier][auraName] then
+		
+			-- update duration and affiliation
 			if timeLeft then
 				local duration = auraDB[unitIdentifier][auraName]["duration"]
 				local startTime = auraDB[unitIdentifier][auraName]["startTime"]
 				local timeDiff = timeLeft - (duration - (currentTime - startTime))
 				auraDB[unitIdentifier][auraName]["startTime"] = startTime + timeDiff
+				auraDB[unitIdentifier][auraName]["isOwn"] = true
+			else
+				auraDB[unitIdentifier][auraName]["isOwn"] = false
 			end
 			auraFound[auraName] = true
 		-- if this aura wasn't found but should be shown, create a new entry
