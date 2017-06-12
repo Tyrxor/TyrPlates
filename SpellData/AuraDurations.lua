@@ -451,17 +451,18 @@ spellDB.auraDuration.PvEByName = {
 	["Stone Form"] = 8,		
 
 	--PvP
+	["Battle Standard"] = 0,
+	["Warsong Flag"] = 0,
+	["Silverwing Flag"] = 0,
+	["Recently Bandaged"] = 60,
+	["Netherstorm Flag"] = 0,
 	
 	--General
 	["Dazed"] = 4,
 	["Web"] = 5,
-	["Recently Bandaged"] = 60,
 	["Resurrection Sickness"] = 600,
 	["Alchemist's Stone"] = 0,
 	["Arcane Bomb"] = 5,
-	["Battle Standard"] = 0,
-	["Warsong Flag"] = 0,
-	["Silverwing Flag"] = 0,
 	["Speed"] = 10,
 	["Stormpike's Salvation"] = 120,
 	["Hooked Net"] = 6,	
@@ -489,7 +490,6 @@ spellDB.auraDuration.PvEByName = {
 	["Dominate Mind"] = 15,
 	["Ravage"] = 2,
 	["Improved Blocking"] = 6,
-	["Netherstorm Flag"] = 0,
 	["Hex"] = 10,
 	["Frightening Shout"] = 6,
 	["Pierce Armor"] = 20,
