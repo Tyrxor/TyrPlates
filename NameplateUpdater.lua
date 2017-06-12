@@ -114,11 +114,6 @@ function UpdateNameplateAuras(frame, unitName, healthbar)
 				-- show duration timer
 				if timeLeft < 0 or timeLeft > 60 then
 					frame.auras[j].counter:SetText("")
-					--[[
-					if not borderColor then	--I don't really understand this
-						auraDB[unit]["interrupt"] = nil
-					end
-					]]
 				else	
 					-- show timer above 10s only as full seconds
 					if timeLeft < 10 then
@@ -301,15 +296,25 @@ function UpdateUnitAuras(unitIdentifier, unit)
 	
 	-- save the interrupt aura if it exists
 	auraFound["interrupt"] = true
+
+	--[[for testing
+	if not auraDB[unitIdentifier]["Poison"] then 
+		local auraIcon = TyrPlatesDB.icons[auraName] or tyrPlates:GetAuraIcon(auraName)
+		auraDB[unitIdentifier]["Poison"] = {startTime = currentTime, duration = 10, auraIcon = auraIcon, auraType = "Magic", isOwn = true}	
+	end]]
 	
 	UpdateUnitAurasByauraType(unitIdentifier, unit, currentTime, auraFound, UnitDebuff)
 	UpdateUnitAurasByauraType(unitIdentifier, unit, currentTime, auraFound, UnitBuff)
-
+	
 	--delete auras from the auraDB that were not found on the enemy
 	for aura in pairs(auraDB[unitIdentifier]) do
 		if not auraFound[aura] then
-			--ace:print("remove ".. aura .. " from "..unitIdentifier)
-			auraDB[unitIdentifier][aura] = nil
+			--only delete auras if aura wasn't recently applied
+			--ace:print(currentTime - auraDB[unitIdentifier][aura]["startTime"])
+			if spellDB.trackAura.own[aura] or spellDB.trackAura.enemy[aura] or currentTime - auraDB[unitIdentifier][aura]["startTime"] > 0.2 then
+				--ace:print("remove ".. aura .. " from "..unitIdentifier)
+				auraDB[unitIdentifier][aura] = nil
+			end
 		end
 	end
 end
@@ -322,13 +327,10 @@ function UpdateUnitAurasByauraType(unitIdentifier, unit, currentTime, auraFound,
 	while auraName do
 		-- if an entry for this aura exists and belongs to the player, update it's entry
 		if auraDB[unitIdentifier][auraName] then
-		
 			-- update duration and affiliation
 			if timeLeft then
-				local duration = auraDB[unitIdentifier][auraName]["duration"]
-				local startTime = auraDB[unitIdentifier][auraName]["startTime"]
-				local timeDiff = timeLeft - (duration - (currentTime - startTime))
-				auraDB[unitIdentifier][auraName]["startTime"] = startTime + timeDiff
+				auraDB[unitIdentifier][auraName]["startTime"] = currentTime
+				auraDB[unitIdentifier][auraName]["duration"] = timeLeft
 				auraDB[unitIdentifier][auraName]["isOwn"] = true
 			else
 				auraDB[unitIdentifier][auraName]["isOwn"] = false
@@ -349,7 +351,7 @@ function UpdateUnitAurasByauraType(unitIdentifier, unit, currentTime, auraFound,
 			local auraType = spellDB.trackAura.own[auraName] or spellDB.trackAura.enemy[auraName]
 			
 			if timeLeft then
-				auraDB[unitIdentifier][auraName] = {startTime = currentTime, duration = timeLeft, icon = auraIcon, auraType = auraType, isOwn = true}
+				auraDB[unitIdentifier][auraName] = {startTime = currentTime, originalStartTime = 0, duration = timeLeft, icon = auraIcon, auraType = auraType, isOwn = true}
 			else
 				auraDB[unitIdentifier][auraName] = {startTime = 0, duration = 0, icon = auraIcon, auraType = auraType, isOwn = false}
 			end

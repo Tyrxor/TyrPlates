@@ -44,7 +44,9 @@ tyrPlates.combatTracker:RegisterEvent("PLAYER_REGEN_DISABLED")
 tyrPlates.combatTracker:SetScript("OnEvent", function()
 	if event == "PLAYER_REGEN_ENABLED" then
 		tyrPlates.inCombat = false
+		if not tyrPlates.healthDiffDB then ace:print("tyrPlates.auraCounter missing") end
 		tyrPlates:ClearTable(tyrPlates.healthDiffDB)
+		if not tyrPlates.auraCounter then ace:print("tyrPlates.auraCounter missing") end
 		tyrPlates:ClearTable(tyrPlates.auraCounter)
 	else
 		tyrPlates.inCombat = true

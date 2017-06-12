@@ -5,6 +5,7 @@ spellDB.trackAura = {}
 --auras to be shown if your own
 spellDB.trackAura.own = {
 	["Vampiric Touch"] = "Magic",
+	--[594] = "Magic",
 	["Shadow Word: Pain"] = "Magic",
 }
 

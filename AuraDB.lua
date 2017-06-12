@@ -67,8 +67,9 @@ function auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 		end
 				
 		-- add aura to auraDB
-		if not auraDB[dest] then auraDB[dest] = {} end			
+		if not auraDB[dest] then auraDB[dest] = {} end	
 		auraDB[dest][auraName] = {startTime = currentTime, duration = auraDuration, icon = AuraIcon, auraType = auraType, isOwn = isOwn}
+		--ace:print(auraName.." added")
 		
 		-- if aura was seduction then find it's caster, add caster to the channelerDB
 		if auraName == "Seduction" then
@@ -202,6 +203,7 @@ end
 -- removes all auras on a unit after it's death
 function auraDB:RemoveAllAuras(destGUID, destName)
 	if tyrPlates:IsPlayerOrPetGUID(destGUID) then
+		if not auraDB[destName] then ace:print("auraDB["..destName.."] missing") end
 		tyrPlates:ClearTable(auraDB[destName])
 		if DRDB[destName] then
 			tyrPlates:ClearTable(DRDB[destName])
