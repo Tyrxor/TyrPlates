@@ -351,7 +351,7 @@ function UpdateUnitAurasByauraType(unitIdentifier, unit, currentTime, auraFound,
 			local auraType = spellDB.trackAura.own[auraName] or spellDB.trackAura.enemy[auraName]
 			
 			if timeLeft then
-				auraDB[unitIdentifier][auraName] = {startTime = currentTime, originalStartTime = 0, duration = timeLeft, icon = auraIcon, auraType = auraType, isOwn = true}
+				auraDB[unitIdentifier][auraName] = {startTime = currentTime, duration = timeLeft, icon = auraIcon, auraType = auraType, isOwn = true}
 			else
 				auraDB[unitIdentifier][auraName] = {startTime = 0, duration = 0, icon = auraIcon, auraType = auraType, isOwn = false}
 			end
