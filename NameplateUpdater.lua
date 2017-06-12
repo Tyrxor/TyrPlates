@@ -330,7 +330,7 @@ function UpdateUnitAurasByauraType(unitIdentifier, unit, currentTime, auraFound,
 			end
 			auraFound[auraName] = true
 		-- if this aura wasn't found but should be shown, create a new entry
-		elseif spellDB.trackAura.enemy[auraName] or spellDB.trackAura.own[auraName] then
+		elseif spellDB.trackAura.enemy[auraName] or (spellDB.trackAura.own[auraName] and timeLeft) then
 		
 			-- get spellId to get the aura icon
 			local spellId = spellDB.getSpellId[auraName]
@@ -344,9 +344,9 @@ function UpdateUnitAurasByauraType(unitIdentifier, unit, currentTime, auraFound,
 			local auraType = spellDB.trackAura.own[auraName] or spellDB.trackAura.own[spellId] or spellDB.trackAura.enemy[auraName] or spellDB.trackAura.enemy[spellId] 
 			
 			if timeLeft then
-				auraDB[unitIdentifier][auraName] = {startTime = currentTime, duration = timeLeft, icon = auraIcon, auraType = auraType}
+				auraDB[unitIdentifier][auraName] = {startTime = currentTime, duration = timeLeft, icon = auraIcon, auraType = auraType, isOwn = true}
 			else
-				auraDB[unitIdentifier][auraName] = {startTime = 0, duration = 0, icon = auraIcon, auraType = auraType}
+				auraDB[unitIdentifier][auraName] = {startTime = 0, duration = 0, icon = auraIcon, auraType = auraType, isOwn = false}
 			end
 			auraFound[auraName] = true			
 		end 

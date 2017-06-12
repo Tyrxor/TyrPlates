@@ -16,8 +16,8 @@ local channelerDB = castbarDB.channelerDB
 function castbarDB:addCast(srcGUID, srcName, spellId, spellSchool, currentTime)
 
 	local source
-	local spellName, _, spellIcon, _, _, _, castTime, isTradeSkill = GetSpellInfo(spellId)
-	
+	local spellName, _, spellIcon, _, _, _, castTime = GetSpellInfo(spellId)
+
 	-- GetSpellInfo doesn't seem to return a castTime value for channeled spells, 
 	-- therefore if it is a channel, set castTime to the duration stored in our spellDB
 	if spellDB.channelDuration[spellName] then

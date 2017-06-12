@@ -14,9 +14,10 @@ function auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 	if not destName then return end
 
 	local auraName, _, AuraIcon = GetSpellInfo(spellId)
+	local isOwn = tyrPlates:IsOwnGUID(srcGUID) or IsOwnCast(auraName, currentTime)
 
 	--check if aura has to be shown/applied
-	if shouldBeTracked(auraName, spellId, srcGUID, currentTime) then
+	if shouldBeTracked(auraName, spellId, srcGUID, currentTime, isOwn) then
 		
 		--ace:print("add "..spellId)
 		
@@ -64,10 +65,10 @@ function auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 		if ccCategories[auraName] then
 			auraDuration = incorparateDiminisingReturn(dest, auraName, auraDuration, ccCategories, currentTime)
 		end
-			
+				
 		-- add aura to auraDB
 		if not auraDB[dest] then auraDB[dest] = {} end			
-		auraDB[dest][auraName] = {startTime = currentTime, duration = auraDuration, icon = AuraIcon, auraType = auraType}
+		auraDB[dest][auraName] = {startTime = currentTime, duration = auraDuration, icon = AuraIcon, auraType = auraType, isOwn = isOwn}
 		
 		-- if aura was seduction then find it's caster, add caster to the channelerDB
 		if auraName == "Seduction" then
@@ -81,15 +82,16 @@ function auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 end
 
 -- checks if the given aura should be tracked
-function shouldBeTracked(auraName, spellId, srcGUID, currentTime)
+function shouldBeTracked(auraName, spellId, srcGUID, currentTime, isOwn)
 
 	-- track if aura was found in trackAura.enemy table
-	if spellDB.trackAura.enemy[auraName] or spellDB.trackAura.enemy[spellId] then return true end
+	if spellDB.trackAura.enemy[auraName] or spellDB.trackAura.enemy[spellId] then 
+		return true 
+	end
 	
 	-- track if aura was found in trackAura.own table and belongs to you
-	if (spellDB.trackAura.own[auraName] or spellDB.trackAura.own[spellId]) and
-	   (tyrPlates:IsOwnGUID(srcGUID) or IsOwnCast(auraName, currentTime))
-	   then return true 
+	if (spellDB.trackAura.own[auraName] or spellDB.trackAura.own[spellId]) and isOwn then
+	   return true 
 	end
 	return false
 end
@@ -143,7 +145,7 @@ function auraDB:applySpellLockAura(destGUID, destName, spell, school, currentTim
 	
 	-- add an artificial aura to the auraDB
 	if not auraDB[dest] then auraDB[dest] = {} end
-	auraDB[dest]["interrupt"] = {startTime = currentTime, duration = lockOutDuration, auraIcon = icon, auraType = "school"}	
+	auraDB[dest]["interrupt"] = {startTime = currentTime, duration = lockOutDuration, auraIcon = icon, auraType = "school", isOwn = false}	
 end
 
 -- removes an aura from the auraDB
@@ -169,15 +171,16 @@ function auraDB:RemoveAura(destGUID, destName, spellId, aura, currentTime)
 
 	-- check if the unit even has the removed aura in our DB
 	if auraDB[dest] and auraDB[dest][aura] then
-	
+
 		-- if the aura influenced the cast speed, change it back
 		if spellDB.castSpeedChange[aura] then
 			castbarDB.castingSpeedDB[dest] = castbarDB.castingSpeedDB[dest] / spellDB.castSpeedChange[aura]
 		end	
 
 		-- delete all auras with the given name unless you track it and it's not your own 
-		if not spellDB.trackAura.own[aura] and not spellDB.trackAura.own[spellId] or IsOwnAura(aura, dest, currentTime) then
+		if not auraDB[dest][aura]["isOwn"] or (spellDB.trackAura.own[aura] or spellDB.trackAura.own[spellId]) then
 			auraDB[dest][aura] = nil
+			--ace:print("removed "..aura)
 			
 			-- check if the removed aura has a diminishing return
 			if ccCategories[aura] then
