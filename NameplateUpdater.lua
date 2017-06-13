@@ -109,10 +109,10 @@ function UpdateNameplateAuras(frame, unitName, healthbar)
 					
 				local startTime = auraDB[unit][aura]["startTime"]
 				local duration = auraDB[unit][aura]["duration"]
-				local timeLeft = startTime + duration - currentTime
+				local timeLeft = startTime + duration - currentTime -- + 0.1
 					
 				-- show duration timer
-				if timeLeft < 0 or timeLeft > 60 then
+				if timeLeft <= 0 or timeLeft > 60 then
 					frame.auras[j].counter:SetText("")
 				else	
 					-- show timer above 10s only as full seconds

@@ -16,6 +16,14 @@ function auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 	local auraName, _, AuraIcon = GetSpellInfo(spellId)
 	local isOwn = tyrPlates:IsOwnGUID(srcGUID) or IsOwnCast(auraName, currentTime)
 
+	-- if aura was health funnel then find it's caster, add caster to the channelerDB
+	if auraName == "Health Funnel" then
+		local healthFunnelCaster = findHealthFunnelCaster(currentTime)
+		if healthFunnelCaster then
+			castbarDB:addChanneler(healthFunnelCaster, healthFunnelCaster, destGUID, destName, auraName)
+		end
+	end
+	
 	--check if aura has to be shown/applied
 	if shouldBeTracked(auraName, spellId, srcGUID, currentTime, isOwn) then
 		
@@ -51,7 +59,7 @@ function auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 		
 		-- inform the user that the aura has no entry in the auraDurationDB
 		if not auraDuration then
-			ace:print(auraName .. " has unknown spellId " .. spellId)
+			ace:print(auraName .. " has unknown name and spellId " .. spellId)
 			auraDuration = 0
 		end
 		
@@ -247,6 +255,20 @@ function findSeductionCaster(currentTime)
 			local startTime = spell["startTime"]
 			local endTime = startTime + seductionCastTime
 			if currentTime < endTime + offset and currentTime > endTime - offset then
+				return caster
+			end
+		end
+	end
+	return nil
+end
+
+-- finds the caster responsible for applying the health funnel aura
+function findHealthFunnelCaster(currentTime)
+	local offset = 0.5
+	for caster, spell in pairs(castbarDB.castDB) do
+		if spell["cast"] == "Health Funnel" then
+			local startTime = spell["startTime"]
+			if currentTime < startTime + offset and currentTime > startTime then
 				return caster
 			end
 		end

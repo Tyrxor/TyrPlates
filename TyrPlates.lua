@@ -67,7 +67,6 @@ function outOfCombatTimer(_, elapsed)
 		tyrPlates:ClearTable(tyrPlates.healthDiffDB)
 		if not tyrPlates.auraCounter then ace:print("tyrPlates.auraCounter missing") end
 		tyrPlates:ClearTable(tyrPlates.auraCounter)
-		ace:print("reset")
 	end
 end
 

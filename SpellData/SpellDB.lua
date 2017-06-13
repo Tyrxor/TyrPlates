@@ -152,7 +152,7 @@ spellDB.channelWithTarget = {
 	["Seduction"] = 15, 	
 	["Mind Flay"] = 3,		
 	["Drain Soul"] = 15,	
-	["Health Funnel"] = 10,
+	--["Health Funnel"] = 10, has no target in combatlog
 	--["Arcane Missiles"] = 5, doesn't create a aura on the target
 }
 
