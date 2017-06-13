@@ -52,7 +52,7 @@ spellDB.castSpeedChange = {
 	["Slow"] = 1.5,
 	["Bloodlust"] = 10/13,
 	["Heroism"] = 10/13,
-	--["Berserking"] = ,
+	["Berserking"] = 5/6, --not 100% accurate because it's health dependent
 }
 
 
