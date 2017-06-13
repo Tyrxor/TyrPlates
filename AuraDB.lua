@@ -216,8 +216,9 @@ end
 -- removes all auras on a unit after it's death
 function auraDB:RemoveAllAuras(destGUID, destName)
 	if tyrPlates:IsPlayerOrPetGUID(destGUID) then
-		if not auraDB[destName] then ace:print("auraDB["..destName.."] missing") end
-		tyrPlates:ClearTable(auraDB[destName])
+		if auraDB[destName] then
+			tyrPlates:ClearTable(auraDB[destName])
+		end
 		if DRDB[destName] then
 			tyrPlates:ClearTable(DRDB[destName])
 		end
@@ -246,7 +247,7 @@ function auraDB:AddStack(destGUID, aura)
 		dest = destGUID
 	end
 	
-	if auraDB[dest][aura] then
+	if auraDB[dest] and auraDB[dest][aura] then
 		auraDB[dest][aura]["stacks"] = auraDB[dest][aura]["stacks"] + 1
 	end
 end
