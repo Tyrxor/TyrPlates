@@ -352,10 +352,6 @@ function UpdateUnitAurasByauraType(unitIdentifier, unit, currentTime, auraFound,
 		-- if this aura wasn't found but should be shown, create a new entry
 		elseif spellDB.trackAura.enemy[auraName] or (spellDB.trackAura.own[auraName] and timeLeft) then
 			
-			--local auraIcon = TyrPlatesDB.icons[auraName] or tyrPlates:GetAuraIcon(auraName)
-			-- add auraIcon to the iconDB
-			--TyrPlatesDB.icons[auraName] = auraIcon
-			
 			local auraType = spellDB.trackAura.own[auraName] or spellDB.trackAura.enemy[auraName]
 			
 			if timeLeft then
@@ -366,7 +362,7 @@ function UpdateUnitAurasByauraType(unitIdentifier, unit, currentTime, auraFound,
 			auraFound[auraName] = true			
 		end 
 		i = i + 1
-		auraName, _, _, stackCount, _, _, timeLeft = auraTypeFunction(unit, i)
+		auraName, _, auraIcon, stackCount, _, _, timeLeft = auraTypeFunction(unit, i)
 	end
 end
 
