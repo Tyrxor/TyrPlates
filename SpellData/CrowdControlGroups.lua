@@ -61,6 +61,16 @@ spellDB.ccCategories.PvP = {
 	["Hibernate"] = "sleep",	
 	["Wyvern Sting"] = "sleep",
 	
+	--silence
+	["Silence"] = "self",
+	["Arcane Torrent"] = "self",
+	["Counterspell - Silenced"] = "self",
+	["Spell Lock"] = "self",
+	["Garrote - Silence"] = "self",
+	["Unstable Affliction"] = "self",
+	["Kick - Silenced"] = "self",
+	["Silencing Shot"] = "self",
+	["Shield Bash - Silenced"] = "self",
 	
 	--self
 	["Dragon's Breath"] = "self",
