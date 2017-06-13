@@ -156,6 +156,9 @@ spellDB.trackAura.enemy = {
 --auras to be shown on friendly players
 spellDB.trackAura.friendlyPlayer = {
 
+	--test
+	["Power Word: Shield"] = "Magic",
+
 	--Racial
 	["Arcane Torrent"] = "Magic",
 	["War Stomp"] = "none",
