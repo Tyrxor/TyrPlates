@@ -76,7 +76,12 @@ function auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 				
 		-- add aura to auraDB
 		if not auraDB[dest] then auraDB[dest] = {} end	
-		auraDB[dest][auraName] = {startTime = currentTime, duration = auraDuration, icon = AuraIcon, auraType = auraType, isOwn = isOwn}
+		if not auraDB[dest][auraName] then
+			auraDB[dest][auraName] = {startTime = currentTime, stacks = 1, duration = auraDuration, icon = AuraIcon, auraType = auraType, isOwn = isOwn}
+		else
+			auraDB[dest][auraName]["startTime"] = currentTime
+			auraDB[dest][auraName]["duration"] = auraDuration		
+		end
 		--ace:print(auraName.." added")
 		
 		-- if aura was seduction then find it's caster, add caster to the channelerDB
@@ -154,7 +159,7 @@ function auraDB:applySpellLockAura(destGUID, destName, spell, school, currentTim
 	
 	-- add an artificial aura to the auraDB
 	if not auraDB[dest] then auraDB[dest] = {} end
-	auraDB[dest]["interrupt"] = {startTime = currentTime, duration = lockOutDuration, auraIcon = icon, auraType = "school", isOwn = false}	
+	auraDB[dest]["interrupt"] = {startTime = currentTime, stacks = 1,  duration = lockOutDuration, auraIcon = icon, auraType = "school", isOwn = false}	
 end
 
 -- removes an aura from the auraDB
@@ -231,6 +236,19 @@ function auraDB:RemoveAllAuras(destGUID, destName)
 			tyrPlates:ClearTable(DRDB[destGUID])
 		end
 	end  
+end
+
+function auraDB:AddStack(destGUID, aura)
+	local dest
+	if tyrPlates:IsPlayerOrPetGUID(destGUID) then
+		dest = destName
+	else
+		dest = destGUID
+	end
+	
+	if auraDB[dest][aura] then
+		auraDB[dest][aura]["stacks"] = auraDB[dest][aura]["stacks"] + 1
+	end
 end
 
 -- returns true if the given spell was cast by the player

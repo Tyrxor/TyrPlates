@@ -218,12 +218,17 @@ function CreateAuraSlots(frame)
 				frame.auras[j]:SetWidth(30)
 				frame.auras[j]:SetHeight(30)
 		  
-				-- create aura counter showing the duration
+				-- create string for the duration
 				frame.auras[j].counter = frame:CreateFontString( nil, "OVERLAY", this )
 				frame.auras[j].counter:SetFont( FONT_ARIAL,14, "OUTLINE" )
 				frame.auras[j].counter:SetPoint( "CENTER", frame.auras[j], "CENTER", 0, -22 )
+				
+				-- create string for amount of stacks
+				frame.auras[j].stack = frame:CreateFontString( nil, "OVERLAY", this )
+				frame.auras[j].stack:SetFont( FONT_ARIAL,18, "OUTLINE" )
+				frame.auras[j].stack:SetPoint( "CENTER", frame.auras[j], "CENTER", 0, 0)
 		  
-				-- create aura border showing the aura type
+				-- create border showing the aura type
 				frame.auras[j].border = frame:CreateTexture(nil, "OVERLAY") 
 				frame.auras[j].border:SetAllPoints(frame.auras[j])
 				frame.auras[j].border:SetTexture("Interface\\Buttons\\UI-Debuff-Overlays")

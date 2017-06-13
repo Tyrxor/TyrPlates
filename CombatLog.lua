@@ -144,7 +144,8 @@ combatlog:SetScript("OnEvent", function()
     end
 
 	if event == "SPELL_AURA_APPLIED_DOSE" then
-		auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
+		--auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
+		auraDB:AddStack(destGUID, spellName)
 		return
     end
 	

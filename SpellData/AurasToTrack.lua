@@ -7,6 +7,7 @@ spellDB.trackAura.own = {
 	["Vampiric Touch"] = "Magic",
 	--[594] = "Magic",
 	["Shadow Word: Pain"] = "Magic",
+	["Sunder Armor"] = "none",
 }
 
 -- auras to be shown on enemies

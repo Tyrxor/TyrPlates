@@ -93,6 +93,12 @@ function UpdateNameplateAuras(frame, unitName, healthbar)
 				frame.auras[j]:SetTexture(auraDB[unit][aura]["icon"])
 				frame.auras[j]:SetAlpha(1)
 				
+				-- set stacks
+				local stacks = auraDB[unit][aura]["stacks"]
+				if stacks ~= 1 then
+					frame.auras[j].stack:SetText(auraDB[unit][aura]["stacks"])
+				end
+					
 				-- set alignment of the auraslots, depends on the number of auras that have to be shown
 				if j == 1 then
 					frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", -(numberOfAuras-1)*18, 50)
@@ -146,6 +152,7 @@ function UpdateNameplateAuras(frame, unitName, healthbar)
 		-- reset and hide remaining auraslots 
 		for j = k, 10 do
 			frame.auras[j]:SetTexture(nil)
+			frame.auras[j].stack:SetText("")
 			frame.auras[j].counter:SetText("")
 			frame.auras[j].border:Hide()
 		end
@@ -158,6 +165,7 @@ function UpdateNameplateAuras(frame, unitName, healthbar)
 			else
 				frame.auras[j]:SetTexture(nil)
 			end
+			frame.auras[j].stack:SetText("")
 			frame.auras[j].counter:SetText("")
 			frame.auras[j].border:Hide()
 		end
@@ -304,7 +312,7 @@ function UpdateUnitAuras(unitIdentifier, unit)
 	--[[for testing
 	if not auraDB[unitIdentifier]["Poison"] then 
 		local auraIcon = TyrPlatesDB.icons[auraName] or tyrPlates:GetAuraIcon(auraName)
-		auraDB[unitIdentifier]["Poison"] = {startTime = currentTime, duration = 10, auraIcon = auraIcon, auraType = "Magic", isOwn = true}	
+		auraDB[unitIdentifier]["Poison"] = {startTime = currentTime, stacks = 1, duration = 10, auraIcon = auraIcon, auraType = "Magic", isOwn = true}	
 	end]]
 	
 	UpdateUnitAurasByauraType(unitIdentifier, unit, currentTime, auraFound, UnitDebuff)
@@ -326,15 +334,16 @@ end
 function UpdateUnitAurasByauraType(unitIdentifier, unit, currentTime, auraFound, auraTypeFunction)
 
 	local i = 1
-	local auraName, _, _, _, _, _, timeLeft = auraTypeFunction(unit, i)
+	local auraName, _, auraIcon, stackCount, _, _, timeLeft = auraTypeFunction(unit, i)
 	
 	while auraName do
 		-- if an entry for this aura exists and belongs to the player, update it's entry
 		if auraDB[unitIdentifier][auraName] then
-			-- update duration and affiliation
+			-- update duration, stacks and affiliation
 			if timeLeft then
 				auraDB[unitIdentifier][auraName]["startTime"] = currentTime
 				auraDB[unitIdentifier][auraName]["duration"] = timeLeft
+				auraDB[unitIdentifier][auraName]["stacks"] = stackCount			
 				auraDB[unitIdentifier][auraName]["isOwn"] = true
 			else
 				auraDB[unitIdentifier][auraName]["isOwn"] = false
@@ -343,21 +352,21 @@ function UpdateUnitAurasByauraType(unitIdentifier, unit, currentTime, auraFound,
 		-- if this aura wasn't found but should be shown, create a new entry
 		elseif spellDB.trackAura.enemy[auraName] or (spellDB.trackAura.own[auraName] and timeLeft) then
 			
-			local auraIcon = TyrPlatesDB.icons[auraName] or tyrPlates:GetAuraIcon(auraName)
+			--local auraIcon = TyrPlatesDB.icons[auraName] or tyrPlates:GetAuraIcon(auraName)
 			-- add auraIcon to the iconDB
-			TyrPlatesDB.icons[auraName] = auraIcon
+			--TyrPlatesDB.icons[auraName] = auraIcon
 			
 			local auraType = spellDB.trackAura.own[auraName] or spellDB.trackAura.enemy[auraName]
 			
 			if timeLeft then
-				auraDB[unitIdentifier][auraName] = {startTime = currentTime, duration = timeLeft, icon = auraIcon, auraType = auraType, isOwn = true}
+				auraDB[unitIdentifier][auraName] = {startTime = currentTime, stacks = stackCount, duration = timeLeft, icon = auraIcon, auraType = auraType, isOwn = true}
 			else
-				auraDB[unitIdentifier][auraName] = {startTime = 0, duration = 0, icon = auraIcon, auraType = auraType, isOwn = false}
+				auraDB[unitIdentifier][auraName] = {startTime = 0, stacks = stackCount, duration = 0, icon = auraIcon, auraType = auraType, isOwn = false}
 			end
 			auraFound[auraName] = true			
 		end 
 		i = i + 1
-		auraName, _, _, _, _, _, timeLeft = auraTypeFunction(unit, i)
+		auraName, _, _, stackCount, _, _, timeLeft = auraTypeFunction(unit, i)
 	end
 end
 
