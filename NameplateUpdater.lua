@@ -12,7 +12,7 @@ function nameplate:UpdateNameplate()
 	if not this.setup then nameplate:CreateNameplate() return end
 	 
 	local healthbar, castbar = this:GetChildren()
-	local _, _, _, _, nameRegion, level = this:GetRegions()
+	local healthbarBorder, _, spellIconRegion, glow, nameRegion, level = this:GetRegions()
 	local unitName = nameRegion:GetText()
 	level:Hide()
   
@@ -44,7 +44,7 @@ function nameplate:UpdateNameplate()
 		UpdateUnitAuras(target, unit)
 		UpdateUnitCast(target, unit)
 	  
-		-- show highlight around the nameplate
+	  	-- show highlight around the nameplate
 		healthbar.targetBorder:Show()
 		healthbar:SetPoint("TOP", this, "TOP", 0, 7)
 		
@@ -52,7 +52,8 @@ function nameplate:UpdateNameplate()
 		local spell = UnitCastingInfo("target") or UnitChannelInfo("target")
 		castbar.spellNameRegion:SetText(spell)
 	else
-		this:SetAlpha(0.99)
+		this:SetAlpha(0.99)	
+		-- show highlight around the nameplate
 		healthbar.targetBorder:Hide()
 		healthbar:SetPoint("TOP", this, "TOP", 0, 5)
 	end
@@ -64,10 +65,44 @@ function nameplate:UpdateNameplate()
 		end
 	end
 	
-	UpdateHealthbarColor(this, nameRegion, healthbar)
-	UpdateNameplateCastbar(this, unitName, healthbar)
+	UpdateNameplateHealth(this)
 	UpdateNameplateAuras(this, unitName, healthbar)
-	UpdateNameplateHealth(healthbar)  
+	
+	-- if unit is a friendly player, check if health- or castbar has to be hidden
+	if this.isFriendlyPlayer then 
+
+		-- hide this addons castbar
+		if tyrPlates.hideFriendlyCastbar then 
+			healthbar.castbar:Hide()
+		else
+			healthbar.castbar:Show()
+			UpdateNameplateCastbar(this, unitName, healthbar)
+		end
+		
+		-- hide healthbar
+		if tyrPlates.hideFriendlyHealthbar and not this.isLow then  
+			healthbar:Hide()
+			healthbarBorder:Hide()
+			nameRegion:Hide()
+			glow:Hide()
+		else
+			healthbar:Show()
+			healthbarBorder:Show()
+			nameRegion:Show()
+			glow:Show()
+			
+			UpdateHealthbarColor(this, nameRegion, healthbar)
+		end		
+		
+		-- hide spellicon of this addons and the default castbar
+		if tyrPlates.hideFriendlyCastbar or tyrPlates.hideFriendlyHealthbar then  
+			spellIconRegion:Hide()
+			healthbar.castbar.icon:Hide()	
+		end
+	else
+		UpdateNameplateCastbar(this, unitName, healthbar)
+		UpdateHealthbarColor(this, nameRegion, healthbar)
+	end
 end
 
 function UpdateNameplateAuras(frame, unitName, healthbar)
@@ -101,7 +136,12 @@ function UpdateNameplateAuras(frame, unitName, healthbar)
 					
 				-- set alignment of the auraslots, depends on the number of auras that have to be shown
 				if j == 1 then
-					frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", -(numberOfAuras-1)*18, 50)
+					-- move auraslots down if castbar isn't shown
+					if healthbar:IsShown() then
+						frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", -(numberOfAuras-1)*18, 50)
+					else
+						frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", -(numberOfAuras-1)*18, 25)				
+					end
 				else
 					frame.auras[j]:SetPoint("LEFT", frame.auras[j-1], "RIGHT", 5, 0)
 				end
@@ -115,8 +155,8 @@ function UpdateNameplateAuras(frame, unitName, healthbar)
 					
 				local startTime = auraDB[unit][aura]["startTime"]
 				local duration = auraDB[unit][aura]["duration"]
-				local timeLeft = startTime + duration - currentTime -- + 0.1
-					
+				local timeLeft = startTime + duration - currentTime
+				
 				-- show duration timer
 				if timeLeft <= 0 or timeLeft > 60 then
 					frame.auras[j].counter:SetText("")
@@ -195,7 +235,7 @@ function UpdateHealthbarColor(frame, nameRegion, healthbar)
 	local red, green, blue, _ = healthbar:GetStatusBarColor()
 
 	-- check if unit is a friendly player
-	if frame.isFriendlyPlayer == nil then	--nil is correct, don't use not
+	if frame.isFriendlyPlayer == nil then	--nil is correct, don't use not to make sure you only check once
 		if blue > 0.9 and red == 0 and green == 0 then
 			frame.isPlayer = true
 			frame.isFriendlyPlayer = true
@@ -284,10 +324,17 @@ function UpdateNameplateCastbar(frame, unitName, healthbar)
 end
 
 -- updates shown health 
-function UpdateNameplateHealth(healthbar)
+function UpdateNameplateHealth(frame)
+	local healthbar = frame:GetChildren()
 	local min, max = healthbar:GetMinMaxValues()
 	local currentHealth = healthbar:GetValue()
 	local healthInPercent = floor(currentHealth / max*100)
+	
+	if healthInPercent < tyrPlates.isLow then
+		frame.isLow = true
+	else
+		frame.isLow = false
+	end
 	
 	-- show no text if unit has 0% or 100% health
 	if healthInPercent ~= 100 then

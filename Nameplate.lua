@@ -46,6 +46,7 @@ function nameplate:CreateNameplate()
 	healthbar:SetWidth(120)
 	healthbar:SetHeight(10)
 	healthbar:SetBackdrop({bgFile = [[Interface\AddOns\TyrPlates\img\StatusbarBackground]], insets = {left = -1, right = -1, top = -1, bottom = -1}})
+	healthbar:Show()
   
 	-- border of healthbar
 	healthbarBorder:ClearAllPoints()
@@ -54,6 +55,7 @@ function nameplate:CreateNameplate()
 	healthbarBorder:SetWidth(155)
 	healthbarBorder:SetHeight(64)
 	healthbarBorder:SetDrawLayer("BACKGROUND")
+	healthbarBorder:Show()
 	
 	-- extra border to highlight the nameplate that is targeted
 	if healthbar.targetBorder == nil then
@@ -71,11 +73,14 @@ function nameplate:CreateNameplate()
 	glow:SetTexture("Interface\\AddOns\\TyrPlates\\img\\Highlight")
 	glow:SetWidth(155)
 	glow:SetHeight(64)
+	glow:Show()
+
 
 	-- name of the unit the nameplate belongs to
 	nameRegion:SetFont(FONT_ARIAL,12)
 	nameRegion:SetPoint("BOTTOM", healthbar, "CENTER", 0, 5)
 	nameRegion:SetDrawLayer("BACKGROUND")
+	nameRegion:Show()
 
 	-- hide level
 	level:Hide()
@@ -110,6 +115,7 @@ function nameplate:CreateNameplate()
 	this.aggro = false
 	this.isPlayer = false
 	this.isFriendlyNPC = false
+	this.isLow = false
 	this.setup = true 
 end
 
@@ -138,6 +144,7 @@ function SetDefaultCastbar(frame)
 	spellIconRegion:SetWidth(30)
 	spellIconRegion:SetHeight(30)
 	spellIconRegion:SetTexCoord( 0.1, 0.9, 0.1, 0.9 )
+	spellIconRegion:Show()
 	
 	-- create text containg the spellname
 	if not castbar.spellNameRegion then
@@ -154,7 +161,7 @@ function CreateCastbar(frame)
 	local healthbar = frame:GetChildren()
 
 	if healthbar.castbar == nil then
-		healthbar.castbar = CreateFrame("Statusbar", nil, healthbar)
+		healthbar.castbar = CreateFrame("Statusbar", nil, nil)
 		healthbar.castbar:Hide()
 		healthbar.castbar:SetWidth(120)
 		healthbar.castbar:SetHeight(10)
@@ -186,6 +193,7 @@ function CreateCastbar(frame)
 			healthbar.castbar.icon:SetTexCoord(.1,.9,.1,.9)
 			healthbar.castbar.icon:SetWidth(27)
 			healthbar.castbar.icon:SetHeight(27)
+			healthbar.castbar.icon:Show()
 		end
 	end	
 end
