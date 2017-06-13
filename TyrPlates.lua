@@ -36,6 +36,8 @@ function tyrPlates:track(what, auraName, spellId)
 end
 
 tyrPlates.inCombat = false
+local timeSinceLastUpdate = 0
+local timeUntilReset = 10
 
 -- tracks if player is in combat
 tyrPlates.combatTracker = CreateFrame("Frame", nil, UIParent)
@@ -43,15 +45,31 @@ tyrPlates.combatTracker:RegisterEvent("PLAYER_REGEN_ENABLED")
 tyrPlates.combatTracker:RegisterEvent("PLAYER_REGEN_DISABLED")
 tyrPlates.combatTracker:SetScript("OnEvent", function()
 	if event == "PLAYER_REGEN_ENABLED" then
+		tyrPlates.timer:SetScript("OnUpdate", outOfCombatTimer)
 		tyrPlates.inCombat = false
+	else
+		tyrPlates.inCombat = true
+		tyrPlates.timer:SetScript("OnUpdate", nil) -- reset function, let it do nothing
+		timeSinceLastUpdate = 0	
+	end
+end)
+
+tyrPlates.timer = CreateFrame("Frame", nil, UIParent)
+function outOfCombatTimer(_, elapsed)
+	timeSinceLastUpdate = timeSinceLastUpdate + elapsed; 	
+
+	if timeSinceLastUpdate >= timeUntilReset then
+		tyrPlates.timer:SetScript("OnUpdate", nil) -- reset function, let it do nothing
+		timeSinceLastUpdate = 0	
+		
+		--reset DB
 		if not tyrPlates.healthDiffDB then ace:print("tyrPlates.auraCounter missing") end
 		tyrPlates:ClearTable(tyrPlates.healthDiffDB)
 		if not tyrPlates.auraCounter then ace:print("tyrPlates.auraCounter missing") end
 		tyrPlates:ClearTable(tyrPlates.auraCounter)
-	else
-		tyrPlates.inCombat = true
+		ace:print("reset")
 	end
-end)
+end
 
 -- checks if the given guid is the guid of a pet or player
 function tyrPlates:IsPlayerOrPetGUID(guid)
