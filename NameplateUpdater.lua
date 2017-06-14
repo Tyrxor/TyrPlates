@@ -18,12 +18,29 @@ function nameplate:UpdateNameplate()
   
   	--try to get guid through nameplates current healthDiff
 	if not nameplate.nameplateByGUID[this] then
+		if MobHealth3 then
+			local curHealth, max, found = MobHealth3:GetHealth(healthbar:GetValue(), 100, unitName, level:GetText())
+			if found then 
+				local healthDiff = max-curHealth
+				local offset = floor(max * tyrPlates.accuracy)
+				local i
+				for i = -offset, offset do 
+					if healthDiffDB[(healthDiff+i)..unitName] then
+						ace:print("guid found")
+						ace:print(healthDiffDB[(healthDiff+i)..unitName])
+						nameplate.nameplateByGUID[this] = healthDiffDB[(healthDiff+i)..unitName]
+					end	
+				end
+			end
+		end
+		--[[
 		local _, max = healthbar:GetMinMaxValues()
 		local curHealth = healthbar:GetValue()
 		local healthDiff = max-curHealth
 		if healthDiffDB[healthDiff..unitName] then
 			nameplate.nameplateByGUID[this] = healthDiffDB[healthDiff..unitName]
 		end
+		]]
 	end
   
 	-- change layout if nameplate is the target, set it's guid and update it's auras and casts
@@ -32,7 +49,6 @@ function nameplate:UpdateNameplate()
 		local unit = "target"
 		local targetName = UnitName(unit) -- should be the same as unitName in this case
 		local targetGUID = UnitGUID(unit)
-
 		nameplate.nameplateByGUID[this] = targetGUID	-- set guid of the nameplate
 		
 		if tyrPlates:IsPlayerOrPetGUID(targetGUID) then
@@ -200,7 +216,7 @@ function UpdateNameplateAuras(frame, unitName, healthbar)
 		-- reset and hide all auraslots and show a questionmark if necessary
 		for j = 1, 10 do		
 			if j == 1 and tyrPlates.inCombat and not frame.isPlayer and not frame.isFriendlyNPC and tyrPlates.auraCounter[unitName] and tyrPlates.auraCounter[unitName] > 0 then
-				if healthbar:GetAlpha() == 100 then
+				if healthbar:GetAlpha() == 1 then
 					frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", 0, 50)
 				else
 					frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", 0, 25)			
