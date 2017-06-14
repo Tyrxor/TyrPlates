@@ -7,6 +7,8 @@ tyrPlates:SetScript("OnEvent", function()
 	if arg1 ~= "TyrPlates" then return end
 	if not ( TyrPlatesDB ) then TyrPlatesDB = {} end
 	if not ( TyrPlatesDB.class ) then TyrPlatesDB.class = {} end
+	if not ( TyrPlatesDB.getHealthDB ) then TyrPlatesDB.getHealthDB = {} end
+	if not ( TyrPlatesDB.maxHealth ) then TyrPlatesDB.maxHealth = {} end
 	tyrPlates:UnregisterEvent("ADDON_LOADED")
 end)
 

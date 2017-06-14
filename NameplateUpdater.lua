@@ -18,18 +18,37 @@ function nameplate:UpdateNameplate()
   
   	--try to get guid through nameplates current healthDiff
 	if not nameplate.nameplateByGUID[this] then
-		if MobHealth3 then
-			local curHealth, max, found = MobHealth3:GetHealth(healthbar:GetValue(), 100, unitName, level:GetText())
-			if found then 
-				local healthDiff = max-curHealth
-				local offset = floor(max * tyrPlates.accuracy)
-				local i
-				for i = -offset, offset do 
-					if healthDiffDB[(healthDiff+i)..unitName] then
-						ace:print("guid found")
-						ace:print(healthDiffDB[(healthDiff+i)..unitName])
-						nameplate.nameplateByGUID[this] = healthDiffDB[(healthDiff+i)..unitName]
-					end	
+		local percentHP = healthbar:GetValue()
+		local maxHP = TyrPlatesDB.maxHealth[unitName.."_"..level:GetText()]
+		if maxHP then
+					--[[
+			local curHPMin = math.floor((percentHP-1)/100 * maxHP)
+			local a = math.floor((percentHP-1)/100 * maxHP + 0.5)
+			local b = math.floor((percentHP-0.5)/100 * maxHP)
+			local c = math.floor((percentHP-0.5)/100 * maxHP + 0.5)
+			local test = math.floor((percentHP)/100 * maxHP + 0.5)
+
+			local a = math.floor((percentHP-0.5)/100 * maxHP)
+			local b = math.ceil((percentHP-0.5)/100 * maxHP)
+			local c = math.ceil((percentHP-0.5)/100 * maxHP + 0.5)
+			local test = math.floor((percentHP-0.5)/100 * maxHP + 0.5)
+			local curHPMax = math.ceil(percentHP/100 * maxHP)
+
+			ace:print("curHPMin: "..curHPMin)
+			ace:print(a)
+			ace:print(b)
+			ace:print(c)
+			ace:print(test)
+			ace:print("curHPMax: "..curHPMax)
+						]]--
+			local i
+			local curHPMin = math.floor((percentHP-1)/100 * maxHP)
+			local curHPMax = math.ceil(percentHP/100 * maxHP)
+			for i = curHPMin, curHPMax do 
+				if healthDiffDB[(maxHP-i)..unitName] then
+				ace:print("guid found")
+				--ace:print(healthDiffDB[(healthDiff+i)..unitName])
+				nameplate.nameplateByGUID[this] = healthDiffDB[(maxHP-i)..unitName]
 				end
 			end
 		end
