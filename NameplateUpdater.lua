@@ -65,11 +65,11 @@ function nameplate:UpdateNameplate()
 		end
 	end
 	
+	UpdateHealthbarColor(this, nameRegion, healthbar)
 	UpdateNameplateHealth(this)
-	UpdateNameplateAuras(this, unitName, healthbar)
 	
 	-- if unit is a friendly player, check if health- or castbar has to be hidden
-	if this.isFriendlyPlayer then 
+	if this.isFriendly then 
 
 		-- hide this addons castbar
 		if tyrPlates.hideFriendlyCastbar then 
@@ -81,17 +81,15 @@ function nameplate:UpdateNameplate()
 		
 		-- hide healthbar
 		if tyrPlates.hideFriendlyHealthbar and not this.isLow then  
-			healthbar:Hide()
+			healthbar:SetAlpha(0) -- if you use Hide() the auras will float freely on the screen
 			healthbarBorder:Hide()
 			nameRegion:Hide()
 			glow:Hide()
 		else
-			healthbar:Show()
+			healthbar:SetAlpha(1)
 			healthbarBorder:Show()
 			nameRegion:Show()
 			glow:Show()
-			
-			UpdateHealthbarColor(this, nameRegion, healthbar)
 		end		
 		
 		-- hide spellicon of this addons and the default castbar
@@ -100,9 +98,10 @@ function nameplate:UpdateNameplate()
 			healthbar.castbar.icon:Hide()	
 		end
 	else
+		healthbar:SetAlpha(1)
 		UpdateNameplateCastbar(this, unitName, healthbar)
-		UpdateHealthbarColor(this, nameRegion, healthbar)
 	end
+	UpdateNameplateAuras(this, unitName, healthbar)	
 end
 
 function UpdateNameplateAuras(frame, unitName, healthbar)
@@ -119,11 +118,23 @@ function UpdateNameplateAuras(frame, unitName, healthbar)
 
 		local currentTime = GetTime()
 		local j, k = 1, 1
-		local numberOfAuras = tableLength(auraDB[unit], frame.isFriendlyPlayer)
+		local numberOfAuras = tableLength(auraDB[unit], frame.isFriendly)
 		for aura in pairs(auraDB[unit]) do
-			--don't show aura if unit is a friendly player and the aura not in spellDB.trackAura.friendlyPlayer
-			if not frame.isFriendlyPlayer or spellDB.trackAura.friendlyPlayer[aura] then
-			
+			-- don't show aura if unit is friendly and the aura is not in spellDB.trackAura.friendly
+			if not frame.isFriendly or spellDB.trackAura.friendly[aura] then
+					
+				-- set alignment of the auraslots, depends on the number of auras that have to be shown
+				if j == 1 then
+					-- move auraslots down if castbar isn't shown
+					if healthbar:GetAlpha() == 1 then
+						frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", -(numberOfAuras-1)*18, 50)
+					else
+						frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", -(numberOfAuras-1)*18, 25)				
+					end
+				else
+					frame.auras[j]:SetPoint("LEFT", frame.auras[j-1], "RIGHT", 5, 0)
+				end
+				
 				-- set auraIcon
 				frame.auras[j]:SetTexture(auraDB[unit][aura]["icon"])
 				frame.auras[j]:SetAlpha(1)
@@ -132,18 +143,6 @@ function UpdateNameplateAuras(frame, unitName, healthbar)
 				local stacks = auraDB[unit][aura]["stacks"]
 				if stacks ~= 1 then
 					frame.auras[j].stack:SetText(auraDB[unit][aura]["stacks"])
-				end
-					
-				-- set alignment of the auraslots, depends on the number of auras that have to be shown
-				if j == 1 then
-					-- move auraslots down if castbar isn't shown
-					if healthbar:IsShown() then
-						frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", -(numberOfAuras-1)*18, 50)
-					else
-						frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", -(numberOfAuras-1)*18, 25)				
-					end
-				else
-					frame.auras[j]:SetPoint("LEFT", frame.auras[j-1], "RIGHT", 5, 0)
 				end
 				
 				-- set color of border and show it
@@ -184,7 +183,8 @@ function UpdateNameplateAuras(frame, unitName, healthbar)
 						end
 						frame.auras[j]:SetAlpha(f * 2)
 					end				
-				end						
+				end		
+				
 				k = k + 1
 				j = j + 1
 			end
@@ -200,8 +200,12 @@ function UpdateNameplateAuras(frame, unitName, healthbar)
 		-- reset and hide all auraslots and show a questionmark if necessary
 		for j = 1, 10 do		
 			if j == 1 and tyrPlates.inCombat and not frame.isPlayer and not frame.isFriendlyNPC and tyrPlates.auraCounter[unitName] and tyrPlates.auraCounter[unitName] > 0 then
+				if healthbar:GetAlpha() == 100 then
+					frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", 0, 50)
+				else
+					frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", 0, 25)			
+				end
 				frame.auras[j]:SetTexture("Interface\\Icons\\Inv_misc_questionmark")
-				frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", 0, 50)
 			else
 				frame.auras[j]:SetTexture(nil)
 			end
@@ -238,8 +242,10 @@ function UpdateHealthbarColor(frame, nameRegion, healthbar)
 	if frame.isFriendlyPlayer == nil then	--nil is correct, don't use not to make sure you only check once
 		if blue > 0.9 and red == 0 and green == 0 then
 			frame.isPlayer = true
+			frame.isFriendly = true
 			frame.isFriendlyPlayer = true
 		else
+			frame.isFriendly = false
 			frame.isFriendlyPlayer = false
 		end
 	end
@@ -269,6 +275,7 @@ function UpdateHealthbarColor(frame, nameRegion, healthbar)
 		return
 	elseif red == 0 and green > 0.99 and blue == 0 then
 		--friendly npc
+		frame.isFriendly = true
 		frame.isFriendlyNPC = true
 		healthbar:SetStatusBarColor(0,1,0,1)	
 	end
@@ -512,10 +519,10 @@ function IsTarget(frame)
 end
 
 
-function tableLength(auratable, isFriendlyPlayer)
+function tableLength(auratable, isFriendly)
 	local length = 0
 	for aura in pairs(auratable) do 
-		if not isFriendlyPlayer or spellDB.trackAura.friendlyPlayer[aura] then
+		if not isFriendly or spellDB.trackAura.friendly[aura] then
 			length = length + 1 
 		end
 	end	

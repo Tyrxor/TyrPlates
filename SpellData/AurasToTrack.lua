@@ -153,8 +153,8 @@ spellDB.trackAura.enemy = {
 	["Stun"] = "Magic",
 }
 
---auras to be shown on friendly players
-spellDB.trackAura.friendlyPlayer = {
+--auras to be shown on friendly units
+spellDB.trackAura.friendly = {
 
 	--test
 	["Power Word: Shield"] = "Magic",

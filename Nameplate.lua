@@ -111,10 +111,11 @@ function nameplate:CreateNameplate()
 		nameplate.nameplateByGUID[this] = healthDiffDB[healthDiff..unitName]
 	end
   
-	this.isFriendlyPlayer = nil
 	this.aggro = false
 	this.isPlayer = false
+	this.isFriendly = false
 	this.isFriendlyNPC = false
+	this.isFriendlyPlayer = nil
 	this.isLow = false
 	this.setup = true 
 end
@@ -240,7 +241,7 @@ function CreateAuraSlots(frame)
 				frame.auras[j].border = frame:CreateTexture(nil, "OVERLAY") 
 				frame.auras[j].border:SetAllPoints(frame.auras[j])
 				frame.auras[j].border:SetTexture("Interface\\Buttons\\UI-Debuff-Overlays")
-				frame.auras[j].border:SetTexCoord(0.296875,0.5703125,0,0.515625)	  
+				frame.auras[j].border:SetTexCoord(0.296875,0.5703125,0,0.515625)	   
 			end
 		end
 	end
