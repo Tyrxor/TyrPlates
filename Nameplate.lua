@@ -103,33 +103,14 @@ function nameplate:CreateNameplate()
 	nameplate.nameplateByGUID[this] = nil
   
 	--try to get guid through nameplates current healthDiff
-	--[[
+
 	local unitName = nameRegion:GetText()
-	if MobHealth3 then
-		local curHealth, max, found = MobHealth3:GetHealth(healthbar:GetValue(), 100, unitName, level:GetText())
-		--ace:print(max)
-		if found then 
-			local healthDiff = max-curHealth
-			local offset = floor(max * tyrPlates.accuracy)
-			local i
-			for i = -offset, offset do 
-				if healthDiffDB[(healthDiff+i)..unitName] then
-					--ace:print("guid found")
-					--ace:print(healthDiffDB[(healthDiff+i)..unitName])
-					nameplate.nameplateByGUID[this] = healthDiffDB[(healthDiff+i)..unitName]
-				end	
-			end
-		end
-	end
-	]]
-	--[[
 	local _, max = healthbar:GetMinMaxValues()
 	local curHealth = healthbar:GetValue()
 	local healthDiff = max-curHealth
 	if healthDiffDB[healthDiff..unitName] then
 		nameplate.nameplateByGUID[this] = healthDiffDB[healthDiff..unitName]
 	end
-	]]
   
 	this.aggro = false
 	this.isPlayer = false
