@@ -370,7 +370,7 @@ function UpdateNameplateHealth(frame)
 	local healthbar = frame:GetChildren()
 	local min, max = healthbar:GetMinMaxValues()
 	local currentHealth = healthbar:GetValue()
-	local healthInPercent = floor(currentHealth / max*100)
+	local healthInPercent = ceil(currentHealth / max*100)
 	
 	if healthInPercent < tyrPlates.isLow then
 		frame.isLow = true
