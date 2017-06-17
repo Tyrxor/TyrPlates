@@ -8,13 +8,14 @@ local spellDB = tyrPlates.spellDB
 local DRDB = {}
 
 --applys auras to players and NPCs
-function auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
+function auraDB:AddAura(srcGUID, destGUID, destName, destFlags, spellId, currentTime)
 	
 	-- can sometimes be the case if the spell has no target (e.g. cloak of shadows)
 	if not destName then return end
 
 	local auraName, _, AuraIcon = GetSpellInfo(spellId)
 	local isOwn = tyrPlates:IsOwnGUID(srcGUID) or IsOwnCast(auraName, currentTime)
+	local isFriendly = tyrPlates:isFriendly(destFlags)
 
 	-- if aura was health funnel then find it's caster, add caster to the channelerDB
 	if auraName == "Health Funnel" then
@@ -25,7 +26,7 @@ function auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 	end
 	
 	--check if aura has to be shown/applied
-	if shouldBeTracked(auraName, spellId, srcGUID, currentTime, isOwn) then
+	if shouldBeTracked(auraName, spellId, isOwn, isFriendly) then
 		
 		--ace:print("add "..spellId)
 		
@@ -96,7 +97,14 @@ function auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 end
 
 -- checks if the given aura should be tracked
-function shouldBeTracked(auraName, spellId, srcGUID, currentTime, isOwn)
+function shouldBeTracked(auraName, spellId, isOwn, isFriendly)
+
+	-- if the unit is friendly, check trackAura.friendly table, if not found, don't track
+	if isFriendly and tyrPlates:track("friendly", auraName, spellId) then
+		return true
+	else
+		return false
+	end
 
 	-- track if aura was found in trackAura.enemy table
 	if tyrPlates:track("enemy", auraName, spellId) then 
@@ -104,9 +112,10 @@ function shouldBeTracked(auraName, spellId, srcGUID, currentTime, isOwn)
 	end
 	
 	-- track if aura was found in trackAura.own table and belongs to you
-	if tyrPlates:track("own", auraName, spellId) and isOwn then
+	if isOwn and tyrPlates:track("own", auraName, spellId) then
 	   return true 
 	end
+	
 	return false
 end
 
@@ -120,12 +129,12 @@ function incorparateDiminisingReturn(dest, aura, auraDuration, ccCategories, cur
 		ccGroup = "DR"..aura
 	end
 					
-	-- create empty DRDB entry
+	-- create empty DRDB entry for this unit
 	if not DRDB[dest] then
 		DRDB[dest] = {}
 	end				
 
-	-- create entry for the CC group
+	-- create entry for the CC group for this unit
 	if not DRDB[dest][ccGroup] then
 		DRDB[dest][ccGroup] = 1
 	end

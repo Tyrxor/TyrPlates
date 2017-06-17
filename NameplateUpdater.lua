@@ -113,76 +113,73 @@ function UpdateNameplateAuras(frame, unitName, healthbar)
 
 		local currentTime = GetTime()
 		local j, k = 1, 1
-		local numberOfAuras = tableLength(auraDB[unit], frame.isFriendly)
+		local numberOfAuras = tableLength(auraDB[unit])
 		for aura in pairs(auraDB[unit]) do
-			-- don't show aura if unit is friendly and the aura is not in spellDB.trackAura.friendly
-			if not frame.isFriendly or spellDB.trackAura.friendly[aura] then
-					
-				-- set alignment of the auraslots, depends on the number of auras that have to be shown
-				if j == 1 then
-					-- move auraslots down if castbar isn't shown
-					if healthbar:GetAlpha() == 1 then
-						frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", -(numberOfAuras-1)*18, 50)
-					else
-						frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", -(numberOfAuras-1)*18, 25)				
-					end
+		
+			-- set alignment of the auraslots, depends on the number of auras that have to be shown
+			if j == 1 then
+				-- move auraslots down if castbar isn't shown
+				if healthbar:GetAlpha() == 1 then
+					frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", -(numberOfAuras-1)*18, 50)
 				else
-					frame.auras[j]:SetPoint("LEFT", frame.auras[j-1], "RIGHT", 5, 0)
+					frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", -(numberOfAuras-1)*18, 25)				
 				end
-				
-				-- set auraIcon
-				frame.auras[j]:SetTexture(auraDB[unit][aura]["icon"])
-				frame.auras[j]:SetAlpha(1)
-				
-				-- set stacks
-				local stacks = auraDB[unit][aura]["stacks"]
-				if stacks ~= 1 then
-					frame.auras[j].stack:SetText(auraDB[unit][aura]["stacks"])
-				end
-				
-				-- set color of border and show it
-				local borderColor = DebuffTypeColor[auraDB[unit][aura]["auraType"]]
-				if borderColor then
-					frame.auras[j].border:SetVertexColor(borderColor.r, borderColor.g, borderColor.b)
-					frame.auras[j].border:Show()
-				end
-					
-				local startTime = auraDB[unit][aura]["startTime"]
-				local duration = auraDB[unit][aura]["duration"]
-				local timeLeft = startTime + duration - currentTime
-				
-				-- show duration timer
-				if timeLeft <= 0 or timeLeft > 60 then
-					frame.auras[j].counter:SetText("")
-				else	
-					-- show timer above 10s only as full seconds
-					if timeLeft < 10 then
-						timeLeft = floor( timeLeft * 10 ^ 1 + 0.5 ) / 10 ^ 1
-					else
-						timeLeft = ceil(timeLeft)
-					end
-					
-					-- set timer
-					frame.auras[j].counter:SetText(timeLeft)
-					
-					-- change color of the timer depending on it's duration
-					local percent = timeLeft / 15
-					local r, g, b = ColorGradient(percent)
-					frame.auras[j].counter:SetTextColor( r, g, b )
-						
-					-- let icon blink if close to expiration
-					if timeLeft < 3 then
-						local f = currentTime % 1
-						if f > 0.5 then 
-							f = 1 - f
-						end
-						frame.auras[j]:SetAlpha(f * 2)
-					end				
-				end		
-				
-				k = k + 1
-				j = j + 1
+			else
+				frame.auras[j]:SetPoint("LEFT", frame.auras[j-1], "RIGHT", 5, 0)
 			end
+			
+			-- set auraIcon
+			frame.auras[j]:SetTexture(auraDB[unit][aura]["icon"])
+			frame.auras[j]:SetAlpha(1)
+			
+			-- set stacks
+			local stacks = auraDB[unit][aura]["stacks"]
+			if stacks ~= 1 then
+				frame.auras[j].stack:SetText(auraDB[unit][aura]["stacks"])
+			end
+			
+			-- set color of border and show it
+			local borderColor = DebuffTypeColor[auraDB[unit][aura]["auraType"]]
+			if borderColor then
+				frame.auras[j].border:SetVertexColor(borderColor.r, borderColor.g, borderColor.b)
+				frame.auras[j].border:Show()
+			end
+				
+			local startTime = auraDB[unit][aura]["startTime"]
+			local duration = auraDB[unit][aura]["duration"]
+			local timeLeft = startTime + duration - currentTime
+			
+			-- show duration timer
+			if timeLeft <= 0 or timeLeft > 60 then
+				frame.auras[j].counter:SetText("")
+			else	
+				-- show timer above 10s only as full seconds
+				if timeLeft < 10 then
+					timeLeft = floor( timeLeft * 10 ^ 1 + 0.5 ) / 10 ^ 1
+				else
+					timeLeft = ceil(timeLeft)
+				end
+				
+				-- set timer
+				frame.auras[j].counter:SetText(timeLeft)
+				
+				-- change color of the timer depending on it's duration
+				local percent = timeLeft / 15
+				local r, g, b = ColorGradient(percent)
+				frame.auras[j].counter:SetTextColor( r, g, b )
+					
+				-- let icon blink if close to expiration
+				if timeLeft < 3 then
+					local f = currentTime % 1
+					if f > 0.5 then 
+						f = 1 - f
+					end
+					frame.auras[j]:SetAlpha(f * 2)
+				end				
+			end		
+			
+			k = k + 1
+			j = j + 1
 		end
 		-- reset and hide remaining auraslots 
 		for j = k, 10 do
@@ -444,6 +441,9 @@ function UpdateUnitCast(unitIdentifier, unit)
 			-- create new cast entry in the castDB
 			castbarDB.castDB[unitIdentifier] = {cast = spellName, startTime = startTime/1000, castTime = remainingCastTime, icon = spellIcon, school = nil, pushbackCounter = 0}
 		end
+	else
+		--reset current cast in castDB
+		castbarDB.castDB[unitIdentifier] = nil
 	end
 end
 
@@ -487,6 +487,9 @@ nameplate.unitUpdater:SetScript("OnEvent", function()
 	else
 		dest = unitGuid
 	end
+	
+	ace:print(UnitCanCooperate("player", unit))
+	
 	UpdateUnitAuras(dest, unit)
 	UpdateUnitCast(dest, unit)
 end)
@@ -516,13 +519,9 @@ function IsTarget(frame)
 end
 
 
-function tableLength(auratable, isFriendly)
+function tableLength(auratable)
 	local length = 0
-	for aura in pairs(auratable) do 
-		if not isFriendly or spellDB.trackAura.friendly[aura] then
-			length = length + 1 
-		end
-	end	
+	for aura in pairs(auratable) do	length = length + 1 end	
 	return length
 end
 

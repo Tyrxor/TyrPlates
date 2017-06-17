@@ -81,11 +81,17 @@ function tyrPlates:IsOwnGUID(guid)
 	return guid == UnitGUID("player")
 end
 
+function tyrPlates:isFriendly(flags)
+	return bit.band(flags,0x00000010) ~= 0
+end
+
 function tyrPlates:ClearTable(Table)
 	if not Table then ace:print("empty table") return end
 	for element in pairs (Table) do
 		Table[element] = nil
 	end
 end
+
+
 
 

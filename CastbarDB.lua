@@ -13,11 +13,15 @@ local castingSpeedDB = castbarDB.castingSpeedDB
 local channelerDB = castbarDB.channelerDB
 
 -- adds a cast or channel to the castDB
-function castbarDB:addCast(srcGUID, srcName, spellId, spellSchool, currentTime)
+function castbarDB:addCast(srcGUID, srcName, srcFlags, spellId, spellSchool, currentTime)
 
 	local source
+	local isFriendly = tyrPlates:isFriendly(srcFlags)
 	local spellName, _, spellIcon, _, _, _, castTime = GetSpellInfo(spellId)
-
+	
+	-- if caster is friendly, filter casts that are not in spellDB.friendlyCasts
+	if tyrPlates.filterFriendlyCasts and isFriendly and not (spellDB.friendlyCasts[spellName] or spellDB.friendlyCasts[spellId]) then return end
+	
 	-- GetSpellInfo doesn't seem to return a castTime value for channeled spells, 
 	-- therefore if it is a channel, set castTime to the duration stored in our spellDB
 	if spellDB.channelDuration[spellName] then

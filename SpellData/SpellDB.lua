@@ -10,6 +10,9 @@ spellDB.spellSchoolIcon = {
 	[64] = "Interface\\Icons\\Spell_Arcane_StarFire"	--arcane
 }
 
+spellDB.friendlyCasts = {
+	["Rain of Fire"] = true,
+}
 
 spellDB.getSpellId = {
 	["Fear Ward"] = 6346,

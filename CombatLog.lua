@@ -10,9 +10,9 @@ local auraDB = tyrPlates.auraDB
 combatlog:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 combatlog:SetScript("OnEvent", function()
 	--ace:print(arg1)		--timestamp
-		--ace:print(arg2)	--event
+		ace:print(arg2)	--event
 		--ace:print(arg3)	--srcGUID
-		--ace:print(arg4)	--srcName
+		ace:print(arg4)	--srcName
 	--ace:print(arg5)		--srcFlags
 		--ace:print(arg6)	--destGUID
 	    --ace:print(arg7)	--destName
@@ -25,7 +25,7 @@ combatlog:SetScript("OnEvent", function()
 	--ace:print(arg14)
 	--ace:print(arg15)
 	--ace:print("---")
-
+	
 	local currentTime = GetTime()
 	
 	-- the combatlog event
@@ -34,10 +34,12 @@ combatlog:SetScript("OnEvent", function()
 	-- source of the event
 	local srcGUID = arg3
 	local srcName = arg4
+	local srcFlags = arg5
 	
 	-- destination of the event 
 	local destGUID = arg6
 	local destName = arg7
+	local destFlags = arg8
 	
 	-- information about the spell that caused the event
 	local spellId = arg9
@@ -81,18 +83,18 @@ combatlog:SetScript("OnEvent", function()
 	-- triggers if a unit starts casting
 	--> add cast to castDB
     if event == "SPELL_CAST_START" then
-		castbarDB:addCast(srcGUID, srcName, spellId, spellSchool, currentTime)
+		castbarDB:addCast(srcGUID, srcName, srcFlags, spellId, spellSchool, currentTime)
 		return
     end
 	
 	-- triggers from instant spells and channels
 	--> try to add spell as aura or channel, stop unit's current cast
 	if event == "SPELL_CAST_SUCCESS" then
-		auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
+		auraDB:AddAura(srcGUID, destGUID, destName, destFlags, spellId, currentTime)
 		castbarDB:StopCast(srcGUID, srcName)
 		-- if spell is a channel, add it as cast
 		if spellDB.channelDuration[spellName] then
-			castbarDB:addCast(srcGUID, srcName, spellId, spellSchool, currentTime)
+			castbarDB:addCast(srcGUID, srcName, srcFlags, spellId, spellSchool, currentTime)
 		end
 		-- if channel has a target (e.g. mindflay, drain soul) add it's caster to the channelerDB
 		if spellDB.channelWithTarget[spellName] then
@@ -125,7 +127,7 @@ combatlog:SetScript("OnEvent", function()
 	-- triggers if a aura is applied
 	--> adds the aura to the auraDB and interrupts the target if the aura causes a "lose control" effect
 	if event == "SPELL_AURA_APPLIED" then
-		auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
+		auraDB:AddAura(srcGUID, destGUID, destName, destFlags, spellId, currentTime)
 		if spellDB.interruptsCast[spellName] then
 			castbarDB:StopCast(destGUID, destName)
 		end
@@ -143,13 +145,12 @@ combatlog:SetScript("OnEvent", function()
     end
 
 	if event == "SPELL_AURA_APPLIED_DOSE" then
-		--auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
 		auraDB:AddStack(destGUID, spellName)
 		return
     end
 	
 	if event == "SPELL_AURA_REFRESH" then
-		auraDB:AddAura(srcGUID, destGUID, destName, spellId, currentTime)
+		auraDB:AddAura(srcGUID, destGUID, destName, destFlags, spellId, currentTime)
 		if tyrPlates.auraCounter[destName] and tyrPlates.auraCounter[destName] > 0 then
 			tyrPlates.auraCounter[destName] = tyrPlates.auraCounter[destName] - 1
 			--ace:print(tyrPlates.auraCounter[destName])
