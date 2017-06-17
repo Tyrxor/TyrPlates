@@ -147,13 +147,14 @@ function SetDefaultCastbar(frame)
 	spellIconRegion:SetHeight(30)
 	spellIconRegion:SetTexCoord( 0.1, 0.9, 0.1, 0.9 )
 	
-	-- create text containg the spellname
+	-- create text containing the spellname
 	if not castbar.spellNameRegion then
 		castbar.spellNameRegion = castbar:CreateFontString()
 		castbar.spellNameRegion:SetFont(FONT_ARIAL,12,"OUTLINE")
 		castbar.spellNameRegion:ClearAllPoints()
 		castbar.spellNameRegion:SetPoint("Center", castbar, "Center", 0, -13)
 	end
+	castbar.spellNameRegion:SetText("")
 end
 
 -- create new castbar used whenever the default blizzard castbar isn't shown
@@ -162,7 +163,7 @@ function CreateCastbar(frame)
 	local healthbar = frame:GetChildren()
 
 	if healthbar.castbar == nil then
-		healthbar.castbar = CreateFrame("Statusbar", nil, nil)
+		healthbar.castbar = CreateFrame("Statusbar", nil, frame)
 		healthbar.castbar:Hide()
 		healthbar.castbar:SetWidth(120)
 		healthbar.castbar:SetHeight(10)
@@ -186,7 +187,7 @@ function CreateCastbar(frame)
 			healthbar.castbar.text:SetFont(FONT_ARIAL,12,"OUTLINE")
 			healthbar.castbar.text:SetPoint("CENTER", healthbar.castbar, "CENTER", 0, -12)
 		end
-
+		
 		-- create icon for the cast spell
 		if not healthbar.castbar.icon then
 			healthbar.castbar.icon = healthbar.castbar:CreateTexture("Icon", nil, frame)
@@ -194,7 +195,6 @@ function CreateCastbar(frame)
 			healthbar.castbar.icon:SetTexCoord(.1,.9,.1,.9)
 			healthbar.castbar.icon:SetWidth(27)
 			healthbar.castbar.icon:SetHeight(27)
-			healthbar.castbar.icon:Show()
 		end
 	end	
 end
