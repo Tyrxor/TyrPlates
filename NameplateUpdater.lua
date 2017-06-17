@@ -73,6 +73,8 @@ function nameplate:UpdateNameplate()
 		-- hide this addons castbar
 		if tyrPlates.hideFriendlyCastbar then 
 			healthbar.castbar:Hide()
+			spellIconRegion:Hide()
+			healthbar.castbar.icon:Hide()	
 		else
 			healthbar.castbar:Show()
 			UpdateNameplateCastbar(this, unitName, healthbar)
@@ -90,12 +92,6 @@ function nameplate:UpdateNameplate()
 			nameRegion:Show()
 			glow:Show()
 		end		
-		
-		-- hide spellicon of this addons and the default castbar
-		if tyrPlates.hideFriendlyCastbar or tyrPlates.hideFriendlyHealthbar then  
-			spellIconRegion:Hide()
-			healthbar.castbar.icon:Hide()	
-		end
 	else
 		healthbar:SetAlpha(1)
 		UpdateNameplateCastbar(this, unitName, healthbar)
@@ -307,6 +303,8 @@ function UpdateNameplateCastbar(frame, unitName, healthbar)
 		elseif castProgress >= castTime then	
 			-- show castbar green for a short time after cast has finished to show it's success
 			healthbar.castbar:SetStatusBarColor(0,1,0,1)
+		else 
+			healthbar.castbar:SetStatusBarColor(1,0.75,0,1)		
 		end
 		-- set castProgressBar depending on if spell is a cast or channel
 		local spellName = castbarDB.castDB[unit]["cast"]
