@@ -24,7 +24,7 @@ combatlog:SetScript("OnEvent", function()
 	--ace:print(arg13)
 	--ace:print(arg14)
 	--ace:print(arg15)
-	--ace:print("")
+	--ace:print("---")
 
 	local currentTime = GetTime()
 	
@@ -108,9 +108,8 @@ combatlog:SetScript("OnEvent", function()
 		return
     end
 	
-	-- absorb spell damage?
+	-- triggers if a spells damage is completely absorbed (like Power Word: Shield)
 	if event == "SPELL_MISSED" then
-		castbarDB:StopCast(srcGUID, srcName)
 		return
 	end
 	
@@ -183,13 +182,11 @@ combatlog:SetScript("OnEvent", function()
 		return
     end
 	
-	-- spell miss!
+	-- spell miss! was tested multiple times
 	if event == "DAMAGE_SHIELD_MISSED" then
 		castbarDB:StopCast(srcGUID, srcName)
 		if tyrPlates.auraCounter[destName] and tyrPlates.auraCounter[destName] > 0 then
 			tyrPlates.auraCounter[destName] = tyrPlates.auraCounter[destName] - 1
-			--ace:print(tyrPlates.auraCounter[destName])
-			--ace:print("counter on "..destName.." is "..tyrPlates.auraCounter[destName])
 		end
 	end
 	
