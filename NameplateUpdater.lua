@@ -83,18 +83,18 @@ function nameplate:UpdateNameplate()
 		
 		-- hide healthbar
 		if tyrPlates.hideFriendlyHealthbar and not this.isLow then  
-			healthbar:SetAlpha(0) -- if you use Hide() the auras will float freely on the screen
+			healthbar:Hide()
 			healthbarBorder:Hide()
 			nameRegion:Hide()
 			glow:Hide()
 		else
-			healthbar:SetAlpha(1)
+			healthbar:Show()
 			healthbarBorder:Show()
 			nameRegion:Show()
 			glow:Show()
 		end		
 	else
-		healthbar:SetAlpha(1)
+		healthbar:Show()
 		UpdateNameplateCastbar(this, unitName, healthbar)
 	end
 	UpdateNameplateAuras(this, unitName, healthbar)	
@@ -120,10 +120,10 @@ function UpdateNameplateAuras(frame, unitName, healthbar)
 			-- set alignment of the auraslots, depends on the number of auras that have to be shown
 			if j == 1 then
 				-- move auraslots down if castbar isn't shown
-				if healthbar:GetAlpha() == 1 then
-					frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", -(numberOfAuras-1)*18, 50)
+				if healthbar:IsShown() then
+					frame.auras[j]:SetPoint("CENTER", frame, "CENTER", -(numberOfAuras-1)*18, 70)
 				else
-					frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", -(numberOfAuras-1)*18, 25)				
+					frame.auras[j]:SetPoint("CENTER", frame, "CENTER", -(numberOfAuras-1)*18, 45)				
 				end
 			else
 				frame.auras[j]:SetPoint("LEFT", frame.auras[j-1], "RIGHT", 5, 0)
@@ -193,10 +193,10 @@ function UpdateNameplateAuras(frame, unitName, healthbar)
 		-- reset and hide all auraslots and show a questionmark if necessary
 		for j = 1, 10 do		
 			if j == 1 and tyrPlates.inCombat and not frame.isPlayer and not frame.isFriendlyNPC and tyrPlates.auraCounter[unitName] and tyrPlates.auraCounter[unitName] > 0 then
-				if healthbar:GetAlpha() == 1 then
-					frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", 0, 50)
+				if healthbar:IsShown() then
+					frame.auras[j]:SetPoint("CENTER", frame, "CENTER", 0, 70)
 				else
-					frame.auras[j]:SetPoint("CENTER", healthbar, "CENTER", 0, 25)			
+					frame.auras[j]:SetPoint("CENTER", frame, "CENTER", 0, 45)			
 				end
 				frame.auras[j]:SetTexture("Interface\\Icons\\Inv_misc_questionmark")
 			else
