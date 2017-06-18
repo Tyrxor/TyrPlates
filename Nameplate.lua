@@ -152,7 +152,7 @@ function SetDefaultCastbar(frame)
 		castbar.spellNameRegion = castbar:CreateFontString()
 		castbar.spellNameRegion:SetFont(FONT_ARIAL,12,"OUTLINE")
 		castbar.spellNameRegion:ClearAllPoints()
-		castbar.spellNameRegion:SetPoint("Center", castbar, "Center", 0, -13)
+		castbar.spellNameRegion:SetPoint("Center", castbar, "Center", 0, -12)
 	end
 	castbar.spellNameRegion:SetText("")
 end

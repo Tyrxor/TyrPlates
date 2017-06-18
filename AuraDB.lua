@@ -100,10 +100,8 @@ end
 function shouldBeTracked(auraName, spellId, isOwn, isFriendly)
 
 	-- if the unit is friendly, check trackAura.friendly table, if not found, don't track
-	if isFriendly and tyrPlates:track("friendly", auraName, spellId) then
-		return true
-	else
-		return false
+	if isFriendly then
+		return tyrPlates:track("friendly", auraName, spellId)
 	end
 
 	-- track if aura was found in trackAura.enemy table

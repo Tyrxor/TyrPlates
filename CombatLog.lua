@@ -10,9 +10,9 @@ local auraDB = tyrPlates.auraDB
 combatlog:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 combatlog:SetScript("OnEvent", function()
 	--ace:print(arg1)		--timestamp
-		ace:print(arg2)	--event
+		--ace:print(arg2)	--event
 		--ace:print(arg3)	--srcGUID
-		ace:print(arg4)	--srcName
+		--ace:print(arg4)	--srcName
 	--ace:print(arg5)		--srcFlags
 		--ace:print(arg6)	--destGUID
 	    --ace:print(arg7)	--destName

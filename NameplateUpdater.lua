@@ -26,6 +26,8 @@ function nameplate:UpdateNameplate()
 		end
 	end
   
+  	UpdateHealthbarColor(this, nameRegion, healthbar) --check early to get the frames affiliation (like friendly)
+  
 	-- change layout if nameplate is the target, set it's guid and update it's auras and casts
 	if IsTarget(this) then
 		local target
@@ -40,8 +42,8 @@ function nameplate:UpdateNameplate()
 			target = targetGUID
 		end
 
-		UpdateUnitAuras(target, unit)
-		UpdateUnitCast(target, unit)
+		UpdateUnitAuras(target, unit, this.isFriendly)
+		UpdateUnitCast(target, unit, this.isFriendly)
 	  
 	  	-- show highlight around the nameplate
 		healthbar.targetBorder:Show()
@@ -64,7 +66,6 @@ function nameplate:UpdateNameplate()
 		end
 	end
 	
-	UpdateHealthbarColor(this, nameRegion, healthbar)
 	UpdateNameplateHealth(this)
 	
 	-- if unit is a friendly player, check if health- or castbar has to be hidden
@@ -345,7 +346,7 @@ function UpdateNameplateHealth(frame)
 	end
 end
 
-function UpdateUnitAuras(unitIdentifier, unit)
+function UpdateUnitAuras(unitIdentifier, unit, isfriendly)
 
 	local currentTime = GetTime()
 	local auraFound = {}
@@ -363,8 +364,8 @@ function UpdateUnitAuras(unitIdentifier, unit)
 		auraDB[unitIdentifier]["Poison"] = {startTime = currentTime, stacks = 1, duration = 10, auraIcon = auraIcon, auraType = "Magic", isOwn = true}	
 	end]]
 	
-	UpdateUnitAurasByauraType(unitIdentifier, unit, currentTime, auraFound, UnitDebuff)
-	UpdateUnitAurasByauraType(unitIdentifier, unit, currentTime, auraFound, UnitBuff)
+	UpdateUnitAurasByauraType(unitIdentifier, unit, isfriendly, currentTime, auraFound, UnitDebuff)
+	UpdateUnitAurasByauraType(unitIdentifier, unit, isfriendly, currentTime, auraFound, UnitBuff)
 	
 	--delete auras from the auraDB that were not found on the enemy
 	for aura in pairs(auraDB[unitIdentifier]) do
@@ -379,7 +380,7 @@ function UpdateUnitAuras(unitIdentifier, unit)
 	end
 end
 
-function UpdateUnitAurasByauraType(unitIdentifier, unit, currentTime, auraFound, auraTypeFunction)
+function UpdateUnitAurasByauraType(unitIdentifier, unit, isfriendly, currentTime, auraFound, auraTypeFunction)
 
 	local i = 1
 	local auraName, _, auraIcon, stackCount, _, _, timeLeft = auraTypeFunction(unit, i)
@@ -398,7 +399,7 @@ function UpdateUnitAurasByauraType(unitIdentifier, unit, currentTime, auraFound,
 			end
 			auraFound[auraName] = true
 		-- if this aura wasn't found but should be shown, create a new entry
-		elseif spellDB.trackAura.enemy[auraName] or (spellDB.trackAura.own[auraName] and timeLeft) then
+		elseif isfriendly and spellDB.trackAura.friendly[auraName] or not isfriendly and (spellDB.trackAura.enemy[auraName] or (spellDB.trackAura.own[auraName] and timeLeft)) then
 			
 			local auraType = spellDB.trackAura.own[auraName] or spellDB.trackAura.enemy[auraName]
 			
@@ -415,7 +416,7 @@ function UpdateUnitAurasByauraType(unitIdentifier, unit, currentTime, auraFound,
 end
 
 -- updates the current cast of a given unit
-function UpdateUnitCast(unitIdentifier, unit)
+function UpdateUnitCast(unitIdentifier, unit, isFriendly)
 
 	local spellName, _, displayName, spellIcon, startTime, endTime = UnitCastingInfo(unit)
 	if not spellName then
@@ -424,22 +425,25 @@ function UpdateUnitCast(unitIdentifier, unit)
 	
 	-- check if unit is currently casting
 	if spellName then
-		local remainingCastTime = (endTime-startTime)/1000 	-- divided by 1000 to convert both values to seconds
-		-- if our castDB has an entry for this cast, update this entry otherwise create a new one
-		if castbarDB.castDB[unitIdentifier] then
-			local castTime = castbarDB.castDB[unitIdentifier]["castTime"]
-		
-			-- update spell casttime for the player
-			castbarDB.castDB[unitIdentifier]["castTime"] = remainingCastTime
+		-- if unit is friendly show only casts in the trackAura.friendly table
+		if not filterFriendlyCasts or not isFriendly or spellDB.friendlyCasts[spellName] then
+			local remainingCastTime = (endTime-startTime)/1000 	-- divided by 1000 to convert both values to seconds
+			-- if our castDB has an entry for this cast, update this entry otherwise create a new one
+			if castbarDB.castDB[unitIdentifier] then
+				local castTime = castbarDB.castDB[unitIdentifier]["castTime"]
 			
-			-- if the updated castTime doesn't align with the castDB, change the casters base casting speed 
-			if UnitIsPlayer(unit) and not spellDB.reducedCastTime[spellName] then
-				if not castbarDB.castingSpeedDB[unitIdentifier] then castbarDB.castingSpeedDB[unitIdentifier] = 1 end
-				castbarDB.castingSpeedDB[unitIdentifier] = castbarDB.castingSpeedDB[unitIdentifier] * (remainingCastTime/castTime)
-			end				
-		else
-			-- create new cast entry in the castDB
-			castbarDB.castDB[unitIdentifier] = {cast = spellName, startTime = startTime/1000, castTime = remainingCastTime, icon = spellIcon, school = nil, pushbackCounter = 0}
+				-- update spell casttime for the player
+				castbarDB.castDB[unitIdentifier]["castTime"] = remainingCastTime
+				
+				-- if the updated castTime doesn't align with the castDB, change the casters base casting speed 
+				if UnitIsPlayer(unit) and not spellDB.reducedCastTime[spellName] then
+					if not castbarDB.castingSpeedDB[unitIdentifier] then castbarDB.castingSpeedDB[unitIdentifier] = 1 end
+					castbarDB.castingSpeedDB[unitIdentifier] = castbarDB.castingSpeedDB[unitIdentifier] * (remainingCastTime/castTime)
+				end				
+			else
+				-- create new cast entry in the castDB
+				castbarDB.castDB[unitIdentifier] = {cast = spellName, startTime = startTime/1000, castTime = remainingCastTime, icon = spellIcon, school = nil, pushbackCounter = 0}
+			end
 		end
 	else
 		--reset current cast in castDB
@@ -470,9 +474,10 @@ nameplate.unitUpdater:SetScript("OnEvent", function()
 		unit = arg1
 		if unit == "player" then return end
 	end
-	
+
 	local unitName = UnitName(unit)
 	local unitGuid = UnitGUID(unit)
+	local isFriendly = UnitIsFriend("player", unit)
 	
 	if not unitName or not unitGuid then return end --can happen, as reseting your target also trigger the "PLAYER_TARGET_CHANGED" event
 	
@@ -488,10 +493,8 @@ nameplate.unitUpdater:SetScript("OnEvent", function()
 		dest = unitGuid
 	end
 	
-	ace:print(UnitCanCooperate("player", unit))
-	
-	UpdateUnitAuras(dest, unit)
-	UpdateUnitCast(dest, unit)
+	UpdateUnitAuras(dest, unit, isFriendly)
+	UpdateUnitCast(dest, unit, isFriendly)
 end)
 
 --updates casts of a unit (target/focus/group etc.) after it starts casting
