@@ -14,7 +14,7 @@ nameplate.Scanner:SetScript("OnUpdate", function()
 		if not frame.done and IsNameplateFrame(frame) then
 			frame:SetScript("OnShow", function() nameplate:CreateNameplate() end)
 			frame:SetScript("OnUpdate", function() nameplate:UpdateNameplate() end)
-			frame.done = true
+			frame.done = true		
 		end
 	end
 end)
@@ -92,6 +92,15 @@ function nameplate:CreateNameplate()
 	raidIconRegion:SetWidth(26)
 	raidIconRegion:SetHeight(26)
 	raidIconRegion:SetPoint("RIGHT", healthbar, "CENTER", -52, 10)
+	
+	local font = "Fonts\\FRIZQT__.TTF"
+	
+	if not this.fakename then
+		this.fakename = this:CreateFontString()	
+		this.fakename:SetFont(font,11)
+		this.fakename:SetPoint("TOP", this, "Center", 0, 15)
+		this.fakename:SetTextColor(0,1,0)
+	end
  
 	CreateHealthText(this)
 	SetDefaultCastbar(this)
@@ -208,7 +217,7 @@ function CreateHealthText(frame)
 		healthbar.text = healthbar:CreateFontString()
 		healthbar.text:SetPoint("RIGHT", healthbar, "RIGHT")
 		healthbar.text:SetFontObject(GameFontWhite)
-		healthbar.text:SetTextColor(1,1,1,1)
+		healthbar.text:SetTextColor(1,1,1)
 		healthbar.text:SetFont(FONT_ARIAL, 10)
 		healthbar.text:SetText("")
 	end

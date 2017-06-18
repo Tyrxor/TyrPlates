@@ -52,11 +52,16 @@ function nameplate:UpdateNameplate()
 		-- show spellName on default castbar
 		local spell = UnitCastingInfo("target") or UnitChannelInfo("target")
 		castbar.spellNameRegion:SetText(spell)
+		
+		if not tyrPlates.hideFriendlyNames and this.isFriendly then
+			this.fakename:SetText(targetName)
+		end
 	else
 		this:SetAlpha(0.99)	
 		-- show highlight around the nameplate
 		healthbar.targetBorder:Hide()
 		healthbar:SetPoint("TOP", this, "TOP", 0, 5)
+		this.fakename:SetText("")
 	end
   
 	if MouseIsOver(this, 0, 0, 0, 0) then
