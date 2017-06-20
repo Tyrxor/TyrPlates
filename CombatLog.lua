@@ -1,9 +1,11 @@
 
 tyrPlates.combatlog = CreateFrame("Frame")
+tyrPlates.auraCounter = {}
 local combatlog = tyrPlates.combatlog
 local spellDB = tyrPlates.spellDB
 local castbarDB = tyrPlates.castbarDB
 local auraDB = tyrPlates.auraDB
+local auraCounter = tyrPlates.auraCounter
 
 -- combatlog tracker
 -- tracks casts, auras and deaths
@@ -131,6 +133,13 @@ combatlog:SetScript("OnEvent", function()
 		if spellDB.interruptsCast[spellName] then
 			castbarDB:StopCast(destGUID, destName)
 		end
+	
+		-- if npc, increase auraCounter for this unit
+		if not tyrPlates:IsPlayerOrPetGUID(destGUID) then
+			if not auraCounter[destName] then auraCounter[destName] = 0 end
+			auraCounter[destName] = auraCounter[destName] + 1
+		end
+		
 	  --[[
 	  --check if sapped
 		if spellName == "Sap" and tyrPlates:IsOwnGUID(destGUID) then
@@ -140,8 +149,8 @@ combatlog:SetScript("OnEvent", function()
 				SendChatMessage("Sapped");
 			end
 		end
-		return
 		]]
+		return
     end
 
 	if event == "SPELL_AURA_APPLIED_DOSE" then
@@ -151,11 +160,6 @@ combatlog:SetScript("OnEvent", function()
 	
 	if event == "SPELL_AURA_REFRESH" then
 		auraDB:AddAura(srcGUID, destGUID, destName, destFlags, spellId, currentTime)
-		if tyrPlates.auraCounter[destName] and tyrPlates.auraCounter[destName] > 0 then
-			tyrPlates.auraCounter[destName] = tyrPlates.auraCounter[destName] - 1
-			--ace:print(tyrPlates.auraCounter[destName])
-			--ace:print("counter on "..destName.." is "..tyrPlates.auraCounter[destName])
-		end
 		return
     end
 	
@@ -179,16 +183,22 @@ combatlog:SetScript("OnEvent", function()
 					castbarDB.channelerDB[destName][spellName] = nil
 				end
 			end
-		end	  
+		end	 
+
+		-- if npc, decrease auraCounter for this unit
+		if not tyrPlates:IsPlayerOrPetGUID(destGUID) then
+			if not auraCounter[destName] then 
+				auraCounter[destName] = 0
+			else
+				auraCounter[destName] = auraCounter[destName] - 1
+			end
+		end
 		return
     end
 	
 	-- spell miss! was tested multiple times
 	if event == "DAMAGE_SHIELD_MISSED" then
 		castbarDB:StopCast(srcGUID, srcName)
-		if tyrPlates.auraCounter[destName] and tyrPlates.auraCounter[destName] > 0 then
-			tyrPlates.auraCounter[destName] = tyrPlates.auraCounter[destName] - 1
-		end
 	end
 	
 	-- triggers if a unit died

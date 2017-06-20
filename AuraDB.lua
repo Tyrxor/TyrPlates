@@ -1,8 +1,6 @@
 tyrPlates.auraDB = {}
-tyrPlates.auraCounter = {}
 
 local auraDB = tyrPlates.auraDB
-local auraCounter = tyrPlates.auraCounter
 local castbarDB = tyrPlates.castbarDB
 local spellDB = tyrPlates.spellDB
 local DRDB = {}
@@ -51,11 +49,6 @@ function auraDB:AddAura(srcGUID, destGUID, destName, destFlags, spellId, current
 			dest = destGUID
 			ccCategories = spellDB.ccCategories.PvE
 			auraDuration = spellDB.auraDuration.PvE[spellId] or spellDB.auraDuration.PvEByName[auraName]		
-			if not auraCounter[destName] then auraCounter[destName] = 0 end
-			
-			-- increase auraCounter for this unit
-			auraCounter[destName] = auraCounter[destName] + 1
-			--ace:print(auraCounter[destName])
 		end
 		
 		-- inform the user that the aura has no entry in the auraDurationDB
@@ -182,12 +175,6 @@ function auraDB:RemoveAura(destGUID, destName, spellId, aura, currentTime)
 	else
 		dest = destGUID
 		ccCategories = spellDB.ccCategories.PvE
-		
-		-- increase auraCounter for this unit
-		if auraCounter[destName] and auraCounter[destName] > 0 then
-			auraCounter[destName] = auraCounter[destName] - 1
-			--ace:print(auraCounter[destName])
-		end
 	end
 
 	-- check if the unit even has the removed aura in our DB
@@ -232,11 +219,6 @@ function auraDB:RemoveAllAuras(destGUID, destName)
 	elseif auraDB[destGUID] then
 		for aura in pairs(auraDB[destGUID]) do
 			auraDB[destGUID][aura] = nil
-			if auraCounter[destName] and auraCounter[destName] > 0 then
-				auraCounter[destName] = auraCounter[destName] - 1
-				--ace:print(auraCounter[destName])
-			end
-			--ace:print("counter on "..destName.." is "..auraCounter[destName])
 		end
 		auraDB[destGUID] = nil
 		
