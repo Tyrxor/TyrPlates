@@ -157,7 +157,7 @@ spellDB.trackAura.enemy = {
 spellDB.trackAura.friendly = {
 
 	--test
-	--["Power Word: Shield"] = "Magic",
+	["Power Word: Shield"] = "Magic",
 
 	--Racial
 	["Arcane Torrent"] = "Magic",
