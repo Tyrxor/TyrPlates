@@ -4,6 +4,8 @@ local auraDB = tyrPlates.auraDB
 local castbarDB = tyrPlates.castbarDB
 local spellDB = tyrPlates.spellDB
 local DRDB = {}
+tyrPlates.auraDB.castReduce = {}
+local castReduce = tyrPlates.auraDB.castReduce
 
 --applys auras to players and NPCs
 function auraDB:AddAura(srcGUID, destGUID, destName, destFlags, spellId, currentTime)
@@ -86,6 +88,9 @@ function auraDB:AddAura(srcGUID, destGUID, destName, destFlags, spellId, current
 				castbarDB:addChanneler(seductionCaster, seductionCaster, destGUID, destName, auraName)
 			end
 		end
+	elseif castbarDB.specialAuras[auraName] then
+		if not castReduce[destName] then castReduce[destName] = {} end
+		castReduce[destName][auraName] = 1
 	end
 end
 
@@ -203,6 +208,12 @@ function auraDB:RemoveAura(destGUID, destName, spellId, aura, currentTime)
 					DRDB[dest][ccGroup.."timer"] = currentTime
 				end
 			end
+		end
+	end
+	
+	if castbarDB.specialAuras[aura] then
+		if castReduce[destName] and castReduce[destName][aura] then
+			castReduce[destName][aura] = nil
 		end
 	end
 end

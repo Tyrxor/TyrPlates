@@ -7,6 +7,25 @@ local castbarDB = tyrPlates.castbarDB
 local auraDB = tyrPlates.auraDB
 local auraCounter = tyrPlates.auraCounter
 
+local relevantEvents = {
+	["SWING_DAMAGE"] = true,
+	["RANGE_DAMAGE"] = true,
+	["SPELL_DAMAGE"] = true,
+	["SPELL_PERIODIC_DAMAGE"] = true,
+	["SPELL_HEAL"] = true,
+	["SPELL_PERIODIC_HEAL"] = true,
+	["SPELL_CAST_START"] = true,
+	["SPELL_CAST_SUCCESS"] = true,
+	["SPELL_CAST_FAILED"] = true,
+	["SPELL_INTERRUPT"] = true,
+	["SPELL_AURA_APPLIED"] = true,
+	["SPELL_AURA_APPLIED_DOSE"] = true,
+	--["SPELL_AURA_REFRESH"] = true,
+	["SPELL_AURA_REMOVED"] = true,
+	["DAMAGE_SHIELD_MISSED"] = true,
+	["UNIT_DIED"] = true,
+}
+
 -- combatlog tracker
 -- tracks casts, auras and deaths
 combatlog:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
@@ -32,6 +51,9 @@ combatlog:SetScript("OnEvent", function()
 	
 	-- the combatlog event
 	local event = arg2
+	
+	-- end function if event isn't relevant for us
+	if not relevantEvents[event] then return end
 	
 	-- source of the event
 	local srcGUID = arg3
@@ -112,11 +134,6 @@ combatlog:SetScript("OnEvent", function()
 		return
     end
 	
-	-- triggers if a spells damage is completely absorbed (like Power Word: Shield)
-	if event == "SPELL_MISSED" then
-		return
-	end
-	
 	-- triggers if a unit's cast was interrupted by an enemy (e.g. kick, counter spell)
 	--> add a spell lock aura to the unit and stop any current casts of the interrupter
 	if event == "SPELL_INTERRUPT" then
@@ -155,13 +172,17 @@ combatlog:SetScript("OnEvent", function()
 
 	if event == "SPELL_AURA_APPLIED_DOSE" then
 		auraDB:AddStack(destGUID, spellName)
+		if castbarDB.specialAuras[spellName] then
+			tyrPlates.auraDB.castReduce[destName][spellName] = tyrPlates.auraDB.castReduce[destName][spellName] + 1
+		end
 		return
     end
-	
+	--[[
 	if event == "SPELL_AURA_REFRESH" then
-		auraDB:AddAura(srcGUID, destGUID, destName, destFlags, spellId, currentTime)
+		auraDB:RefreshAura(srcGUID, destGUID, destName, destFlags, spellId, currentTime)
 		return
     end
+	]]
 	
 	-- triggers if a aura is removed
 	--> remove aura from the auraDB
