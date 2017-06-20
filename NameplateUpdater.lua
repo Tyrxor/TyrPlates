@@ -53,7 +53,7 @@ function nameplate:UpdateNameplate()
 		local spell = UnitCastingInfo("target") or UnitChannelInfo("target")
 		castbar.spellNameRegion:SetText(spell)
 		
-		if not tyrPlates.hideFriendlyNames and this.isFriendly then
+		if not tyrPlates.hideFriendlyName and this.isFriendly then
 			this.fakename:SetText(targetName)
 		end
 	else
