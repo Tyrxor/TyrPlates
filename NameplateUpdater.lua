@@ -120,7 +120,7 @@ function nameplate:UpdateNameplate()
 		end		
 	else
 		healthbar:Show()
-		UpdateNameplateCastbar(this, unitName, healthbar)
+		UpdateNameplateCastbar(this, unitName)
 	end
 	UpdateNameplateAuras(this, unitName, healthbar)	
 end
@@ -209,6 +209,7 @@ function UpdateNameplateAuras(frame, unitName, healthbar)
 						f = 1 - f
 					end
 					frame.auras[j]:SetAlpha(f * 2)
+					frame.auras[j].border:SetAlpha(f * 2)
 				end				
 			end		
 			
@@ -311,7 +312,7 @@ function UpdateHealthbarColor(frame, nameRegion, healthbar)
 	end
 end
 
-function UpdateNameplateCastbar(frame, unitName, healthbar)
+function UpdateNameplateCastbar(frame, unitName)
 
 	local unit	
 	local unitGuid = nameplate.nameplateByGUID[frame]
@@ -320,10 +321,12 @@ function UpdateNameplateCastbar(frame, unitName, healthbar)
 	else
 		unit = unitGuid
 	end
+	
+	local healthbar, originalCastbar = this:GetChildren()
+	local _, _, spellIconRegion = frame:GetRegions()
 
 	-- show and update castbar if a cast exist and the default blizzard one isn't shown (not target)
-	if not IsTarget(frame) and castbarDB.castDB[unit] and castbarDB.castDB[unit]["cast"] then
-		
+	if not IsTarget(frame) and castbarDB.castDB[unit] and castbarDB.castDB[unit]["cast"] then --has problems with originalCastbar:IsShown() instaed of IsTarget(), causes delay in visbibility
 		local currentTime = GetTime()
 		local startTime = castbarDB.castDB[unit]["startTime"]
 		local castProgress = currentTime - startTime
@@ -356,18 +359,28 @@ function UpdateNameplateCastbar(frame, unitName, healthbar)
 		-- set icon
 		healthbar.castbar.icon:SetTexture(castbarDB.castDB[unit]["icon"])
 		
+		-- transform spellicon
 		if healthbar:IsShown() then
 			healthbar.castbar.icon:SetPoint("CENTER", healthbar.castbar, "CENTER", -77, 6.5)
 			healthbar.castbar.icon:SetWidth(25)
 			healthbar.castbar.icon:SetHeight(25)
 		else
-			healthbar.castbar.icon:SetPoint("CENTER", frame, "CENTER", -70, -1)
+			healthbar.castbar.icon:SetPoint("CENTER", frame, "CENTER", -70, 4)
 			healthbar.castbar.icon:SetWidth(14)
 			healthbar.castbar.icon:SetHeight(14)
-		end
-		
+		end	
 		healthbar.castbar:Show()
 	else		
+		-- transform spellicon
+		if healthbar:IsShown() then
+			spellIconRegion:SetPoint("CENTER", originalCastbar, "CENTER", -82, 9)
+			spellIconRegion:SetWidth(30)
+			spellIconRegion:SetHeight(30)
+		else
+			spellIconRegion:SetPoint("CENTER", originalCastbar, "CENTER", -70, 4)
+			spellIconRegion:SetWidth(14)
+			spellIconRegion:SetHeight(14)
+		end	
 		healthbar.castbar:Hide()
 	end
 end
