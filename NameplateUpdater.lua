@@ -101,7 +101,6 @@ function nameplate:UpdateNameplate()
 		-- hide this addons castbar
 		if tyrPlates.hideFriendlyCastbar then 
 			healthbar.castbar:Hide()
-			spellIconRegion:Hide()
 		else
 			healthbar.castbar:Show()
 			UpdateNameplateCastbar(this, unitName, healthbar)

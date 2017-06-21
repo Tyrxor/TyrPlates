@@ -151,11 +151,11 @@ function SetDefaultCastbar(frame)
 	castbarBorder:SetHeight(64)
 
 	-- set layout of the spell icon
-	spellIconRegion:ClearAllPoints()
 	spellIconRegion:SetPoint("CENTER", castbar, "CENTER", -82, 9)
 	spellIconRegion:SetWidth(30)
 	spellIconRegion:SetHeight(30)
 	spellIconRegion:SetTexCoord( 0.1, 0.9, 0.1, 0.9 )
+	spellIconRegion:Hide()
 	
 	-- create text containing the spellname
 	if not castbar.spellNameRegion then
