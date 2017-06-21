@@ -407,7 +407,7 @@ function UpdateNameplateHealth(frame)
 		frame.isLow = false
 	end
 	
-	-- show no text if unit has 0% or 100% health
+	-- show no text if unit has 100% health
 	if healthInPercent ~= 100 then
 		healthbar.text:SetText(healthInPercent .. "%")
 	else
@@ -423,9 +423,6 @@ function UpdateUnitAuras(unitIdentifier, unit, isfriendly)
 	if not auraDB[unitIdentifier] then
 		auraDB[unitIdentifier] = {}
 	end
-	
-	-- save the interrupt aura if it exists
-	auraFound["interrupt"] = true
 
 	--[[for testing
 	if not auraDB[unitIdentifier]["Poison"] then 
@@ -438,7 +435,7 @@ function UpdateUnitAuras(unitIdentifier, unit, isfriendly)
 	
 	--delete auras from the auraDB that were not found on the enemy
 	for aura in pairs(auraDB[unitIdentifier]) do
-		if not auraFound[aura] then
+		if not auraFound[aura] and not spellDB.trackAura.invisible[aura] then
 			--only delete auras if aura wasn't recently applied
 			--ace:print(currentTime - auraDB[unitIdentifier][aura]["startTime"])
 			if spellDB.trackAura.own[aura] or spellDB.trackAura.enemy[aura] or currentTime - auraDB[unitIdentifier][aura]["startTime"] > 0.2 then
@@ -505,7 +502,7 @@ function UpdateUnitCast(unitIdentifier, unit, isFriendly)
 				castbarDB.castDB[unitIdentifier]["castTime"] = remainingCastTime
 				
 				-- if the updated castTime doesn't align with the castDB, change the casters base casting speed 
-				if UnitIsPlayer(unit) and not spellDB.reducedCastTime[spellName] then
+				if tyrPlates.updateCastSpeed and UnitIsPlayer(unit) and not spellDB.reducedCastTime[spellName] then
 					if not castbarDB.castingSpeedDB[unitIdentifier] then castbarDB.castingSpeedDB[unitIdentifier] = 1 end
 					castbarDB.castingSpeedDB[unitIdentifier] = castbarDB.castingSpeedDB[unitIdentifier] * (remainingCastTime/castTime)
 				end				
@@ -611,35 +608,4 @@ function ColorGradient(perc)
 		r2, g2, b2 = 0, 1, 0
 	end
 	return r1 + (r2-r1)*perc, g1 + (g2-g1)*perc, b1 + (b2-b1)*perc
-end
-
-function ConvertToTotemPlate(frame)
-	local healthbar, castbar = frame:GetChildren()
-	local healthbarBorder, castbarBorder, spellIconRegion, glow, nameRegion, level, bossIconRegion, raidIconRegion = frame:GetRegions()
-	local _, _, icon = GetSpellInfo(spellDB.getTotemId[nameRegion:GetText()])
-	
-	healthbar:SetAlpha(0)	-- with the Hide()-function the icon floats if totem is targeted
-	healthbarBorder:Hide()
-	castbar:Hide()
-	castbarBorder:Hide()
-	spellIconRegion:Hide()
-	glow:Hide()
-	nameRegion:Hide()
-
-	frame.icon:SetTexture(icon)
-end
-
-function ConvertToNormalPlate(frame)
-	local healthbar = frame:GetChildren()
-	local healthbarBorder, _, _, glow, nameRegion = frame:GetRegions()
-	
-	healthbar:SetAlpha(1)
-	healthbarBorder:Show()
-	glow:Show()
-	nameRegion:Show()
-	frame.icon:SetTexture(0,0,0,0)
-end
-
-function isNumber(number)
-	return tonumber(number) ~= nil
 end
