@@ -136,22 +136,23 @@ function SetDefaultCastbar(frame)
 	local _, castbarBorder, spellIconRegion = frame:GetRegions()
 	
 	-- set castbar layout
+	
 	castbar:ClearAllPoints()
     castbar:SetWidth(120)
     castbar:SetHeight(10)
     castbar:SetStatusBarTexture("Interface\\AddOns\\TyrPlates\\img\\Statusbar")
     castbar:SetStatusBarColor(1,1,0,1)
-	castbar:SetPoint("CENTER", healthbar, "CENTER", 0, -17)
+	castbar:SetPoint("CENTER", frame, "CENTER", 0, 5)
 	
 	-- set layout of castbarBorder
-	castbarBorder:SetPoint("CENTER", healthbar, "CENTER", 0, -32)
+	castbarBorder:SetPoint("CENTER", castbar, "CENTER", 0, -15)
 	castbarBorder:SetTexture("Interface\\AddOns\\TyrPlates\\img\\RegularBorder")
 	castbarBorder:SetWidth(155)
 	castbarBorder:SetHeight(64)
 
 	-- set layout of the spell icon
 	spellIconRegion:ClearAllPoints()
-	spellIconRegion:SetPoint("CENTER", healthbar, "CENTER", -81, -7)
+	spellIconRegion:SetPoint("CENTER", castbar, "CENTER", -82, 9)
 	spellIconRegion:SetWidth(30)
 	spellIconRegion:SetHeight(30)
 	spellIconRegion:SetTexCoord( 0.1, 0.9, 0.1, 0.9 )
@@ -160,7 +161,6 @@ function SetDefaultCastbar(frame)
 	if not castbar.spellNameRegion then
 		castbar.spellNameRegion = castbar:CreateFontString()
 		castbar.spellNameRegion:SetFont(FONT_ARIAL,12,"OUTLINE")
-		castbar.spellNameRegion:ClearAllPoints()
 		castbar.spellNameRegion:SetPoint("Center", castbar, "Center", 0, -12)
 	end
 	castbar.spellNameRegion:SetText("")
@@ -176,7 +176,7 @@ function CreateCastbar(frame)
 		healthbar.castbar:Hide()
 		healthbar.castbar:SetWidth(120)
 		healthbar.castbar:SetHeight(10)
-		healthbar.castbar:SetPoint("CENTER", healthbar, "CENTER", 0, -15)
+		healthbar.castbar:SetPoint("CENTER", frame, "CENTER", 0, 5)
 		healthbar.castbar:SetStatusBarTexture("Interface\\AddOns\\TyrPlates\\img\\Statusbar")
 		healthbar.castbar:SetStatusBarColor(1,0.75,0,1)
 	
@@ -200,10 +200,10 @@ function CreateCastbar(frame)
 		-- create icon for the cast spell
 		if not healthbar.castbar.icon then
 			healthbar.castbar.icon = healthbar.castbar:CreateTexture("Icon", nil, frame)
-			healthbar.castbar.icon:SetPoint("CENTER", healthbar.castbar, "CENTER", -79, 7.5)
+			healthbar.castbar.icon:SetPoint("CENTER", healthbar.castbar, "CENTER", -77, 6.5)
+			healthbar.castbar.icon:SetWidth(25)
+			healthbar.castbar.icon:SetHeight(25)
 			healthbar.castbar.icon:SetTexCoord(.1,.9,.1,.9)
-			healthbar.castbar.icon:SetWidth(27)
-			healthbar.castbar.icon:SetHeight(27)
 		end
 	end	
 end
@@ -262,8 +262,17 @@ function CreateTotemIcon(frame)
 		local healthbar = frame:GetChildren()
 		frame.icon = frame:CreateTexture( "Icon", nil, frame )
 		frame.icon:SetTexture(0,0,0,0)
-		frame.icon:SetPoint("CENTER", healthbar, "CENTER", 0, 0)
+		frame.icon:SetPoint("CENTER", frame, "CENTER", 0, 0)
 		frame.icon:SetWidth(30)
 		frame.icon:SetHeight(30)
     end
 end
+
+--[[
+function unpack(t,i)
+	i = i or 1
+	if t[i]~=nil then
+		return t[i],unpack(t,i+1)
+	end
+end
+]]

@@ -55,7 +55,12 @@ function nameplate:UpdateNameplate()
 		
 		if not healthbar:IsShown() and not tyrPlates.hideFriendlyName and this.isFriendly then
 			this.fakename:SetText(targetName)
-			this.fakename:SetTextColor(0,1,0)
+			local color = RAID_CLASS_COLORS[TyrPlatesDB.class[targetName]]
+			if color then
+				this.fakename:SetTextColor(color.r, color.g, color.b)
+			else
+				this.fakename:SetTextColor(0,1,0)
+			end
 		end
 	else
 		this:SetAlpha(0.99)	
@@ -97,7 +102,6 @@ function nameplate:UpdateNameplate()
 		if tyrPlates.hideFriendlyCastbar then 
 			healthbar.castbar:Hide()
 			spellIconRegion:Hide()
-			healthbar.castbar.icon:Hide()	
 		else
 			healthbar.castbar:Show()
 			UpdateNameplateCastbar(this, unitName, healthbar)
@@ -353,8 +357,18 @@ function UpdateNameplateCastbar(frame, unitName, healthbar)
 		-- set icon
 		healthbar.castbar.icon:SetTexture(castbarDB.castDB[unit]["icon"])
 		
+		if healthbar:IsShown() then
+			healthbar.castbar.icon:SetPoint("CENTER", healthbar.castbar, "CENTER", -77, 6.5)
+			healthbar.castbar.icon:SetWidth(25)
+			healthbar.castbar.icon:SetHeight(25)
+		else
+			healthbar.castbar.icon:SetPoint("CENTER", frame, "CENTER", -70, -1)
+			healthbar.castbar.icon:SetWidth(14)
+			healthbar.castbar.icon:SetHeight(14)
+		end
+		
 		healthbar.castbar:Show()
-	else
+	else		
 		healthbar.castbar:Hide()
 	end
 end
