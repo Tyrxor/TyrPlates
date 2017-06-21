@@ -53,15 +53,32 @@ function nameplate:UpdateNameplate()
 		local spell = UnitCastingInfo("target") or UnitChannelInfo("target")
 		castbar.spellNameRegion:SetText(spell)
 		
-		if not tyrPlates.hideFriendlyName and this.isFriendly then
+		if not healthbar:IsShown() and not tyrPlates.hideFriendlyName and this.isFriendly then
 			this.fakename:SetText(targetName)
+			this.fakename:SetTextColor(0,1,0)
 		end
 	else
 		this:SetAlpha(0.99)	
 		-- show highlight around the nameplate
 		healthbar.targetBorder:Hide()
 		healthbar:SetPoint("TOP", this, "TOP", 0, 5)
-		this.fakename:SetText("")
+		if not healthbar:IsShown() and not tyrPlates.hideFriendlyPlayerName and this.isFriendly and this.isPlayer then
+			this.fakename:SetText(unitName)
+			local color = RAID_CLASS_COLORS[TyrPlatesDB.class[unitName]]
+			if color then
+				this.fakename:SetTextColor(color.r, color.g, color.b)
+			else
+				this.fakename:SetTextColor(0,1,0)
+			end
+		else
+			this.fakename:SetText("")
+		end	
+	end
+	
+	if tyrPlates.hideFriendlyCastbar then
+		this.fakename:SetPoint("TOP", this, "Center", 0, 15)
+	else
+		this.fakename:SetPoint("TOP", this, "Center", 0, 25)	
 	end
   
 	if MouseIsOver(this, 0, 0, 0, 0) then
@@ -126,9 +143,17 @@ function UpdateNameplateAuras(frame, unitName, healthbar)
 			if j == 1 then
 				-- move auraslots down if castbar isn't shown
 				if healthbar:IsShown() then
-					frame.auras[j]:SetPoint("CENTER", frame, "CENTER", -(numberOfAuras-1)*18, 70)
+					if tyrPlates.hideFriendlyCastbar then
+						frame.auras[j]:SetPoint("CENTER", frame, "CENTER", -(numberOfAuras-1)*18, 65)
+					else
+						frame.auras[j]:SetPoint("CENTER", frame, "CENTER", -(numberOfAuras-1)*18, 70)	
+					end
 				else
-					frame.auras[j]:SetPoint("CENTER", frame, "CENTER", -(numberOfAuras-1)*18, 45)				
+					if tyrPlates.hideFriendlyCastbar then
+						frame.auras[j]:SetPoint("CENTER", frame, "CENTER", -(numberOfAuras-1)*18, 45)
+					else
+						frame.auras[j]:SetPoint("CENTER", frame, "CENTER", -(numberOfAuras-1)*18, 55)	
+					end				
 				end
 			else
 				frame.auras[j]:SetPoint("LEFT", frame.auras[j-1], "RIGHT", 5, 0)
@@ -253,8 +278,12 @@ function UpdateHealthbarColor(frame, nameRegion, healthbar)
 	-- if the unitName is in the classDB, give classcolor
 	if TyrPlatesDB.class[unitName] then
 		frame.isPlayer = true
-		local color = RAID_CLASS_COLORS[TyrPlatesDB.class[unitName]]
-		healthbar:SetStatusBarColor(color.r, color.g, color.b, 1)
+		if tyrPlates.friendlyClasscolorHealthbars then
+			local color = RAID_CLASS_COLORS[TyrPlatesDB.class[unitName]]
+			healthbar:SetStatusBarColor(color.r, color.g, color.b, 1)
+		else
+			healthbar:SetStatusBarColor(0,1,0,1)			
+		end
 		return
 	end
   
