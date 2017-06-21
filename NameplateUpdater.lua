@@ -88,7 +88,7 @@ function nameplate:UpdateNameplate()
   
 	if MouseIsOver(this, 0, 0, 0, 0) then
 		local mouseoverGUID = UnitGUID("mouseover")
-		if mouseoverGUID and not tyrPlates:IsPlayerOrPetGUID(mouseoverGUID) then
+		if mouseoverGUID and not tyrPlates:IsNPCGUID(mouseoverGUID) then
 			nameplate.nameplateByGUID[this] = mouseoverGUID
 		end
 	end

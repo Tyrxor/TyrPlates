@@ -8,12 +8,6 @@ local auraDB = tyrPlates.auraDB
 local auraCounter = tyrPlates.auraCounter
 
 local relevantEvents = {
-	["SWING_DAMAGE"] = true,
-	["RANGE_DAMAGE"] = true,
-	["SPELL_DAMAGE"] = true,
-	["SPELL_PERIODIC_DAMAGE"] = true,
-	["SPELL_HEAL"] = true,
-	["SPELL_PERIODIC_HEAL"] = true,
 	["SPELL_CAST_START"] = true,
 	["SPELL_CAST_SUCCESS"] = true,
 	["SPELL_CAST_FAILED"] = true,
@@ -26,10 +20,22 @@ local relevantEvents = {
 	["UNIT_DIED"] = true,
 }
 
+relevantEvents.damage = {
+	["SWING_DAMAGE"] = true,
+	["RANGE_DAMAGE"] = true,
+	["SPELL_DAMAGE"] = true,
+	["SPELL_PERIODIC_DAMAGE"] = true,
+}
+
+relevantEvents.healing = {
+	["SPELL_HEAL"] = true,
+	["SPELL_PERIODIC_HEAL"] = true,
+}
+
 -- combatlog tracker
 -- tracks casts, auras and deaths
 combatlog:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-combatlog:SetScript("OnEvent", function()
+combatlog:SetScript("OnEvent", function(self, _, ...)
 	--ace:print(arg1)		--timestamp
 		--ace:print(arg2)	--event
 		--ace:print(arg3)	--srcGUID
@@ -48,61 +54,34 @@ combatlog:SetScript("OnEvent", function()
 	--ace:print("---")
 	
 	local currentTime = GetTime()
+	local timestamp, event, srcGUID, srcName, srcFlags, destGUID, destName, destFlags  = ...
+	local destIsNPC = tyrPlates:IsNPCGUID(destGUID)
 	
-	-- the combatlog event
-	local event = arg2
+	if not isRelevantEvent(event) then return end
 	
-	-- end function if event isn't relevant for us
-	if not relevantEvents[event] then return end
-	
-	-- source of the event
-	local srcGUID = arg3
-	local srcName = arg4
-	local srcFlags = arg5
-	
-	-- destination of the event 
-	local destGUID = arg6
-	local destName = arg7
-	local destFlags = arg8
-	
+	-- if target is NPC, save it's dmg and healing taken
+	if destIsNPC then
+		if isDMGEvent(event) then
+			local amountOfDamage
+			if event == "SWING_DAMAGE" then
+				amountOfDamage = arg9
+			else
+				amountOfDamage = arg12
+			end
+			tyrPlates:addDMG(destGUID, destName, amountOfDamage)
+			return
+		elseif isHealEvent(event) then
+			local amountOfHealing = arg12
+			tyrPlates:addHeal(destGUID, destName, amountOfHealing)
+			return
+		end
+	end
+		
 	-- information about the spell that caused the event
 	local spellId = arg9
 	local spellName = arg10
 	local spellSchool = arg11
-   
-   	-- track damage events for NPCs
-	if not tyrPlates:IsPlayerOrPetGUID(destGUID) then
-		if event == "SWING_DAMAGE" then
-			local amount = arg9
-			tyrPlates:addDMG(destGUID, destName, amount)
-			return
-		end	
-		
-		local amount = arg12
-		if event == "RANGE_DAMAGE" then
-			tyrPlates:addDMG(destGUID, destName, amount)
-			return
-		end	
-		
-		if event == "SPELL_DAMAGE" then
-			tyrPlates:addDMG(destGUID, destName, amount)
-			return
-		end	
-		
-		if event == "SPELL_PERIODIC_DAMAGE" then
-			tyrPlates:addDMG(destGUID, destName, amount)
-			return
-		end	
-		
-		if event == "SPELL_HEAL" then
-			tyrPlates:addHeal(destGUID, destName, amount)
-			return
-		end	
-		if event == "SPELL_PERIODIC_HEAL" then
-			tyrPlates:addHeal(destGUID, destName, amount)
-			return
-		end	
-	end
+
    
 	-- triggers if a unit starts casting
 	--> add cast to castDB
@@ -152,7 +131,7 @@ combatlog:SetScript("OnEvent", function()
 		end
 	
 		-- if npc, increase auraCounter for this unit
-		if not tyrPlates:IsPlayerOrPetGUID(destGUID) then
+		if destIsNPC then
 			if not auraCounter[destName] then auraCounter[destName] = 0 end
 			auraCounter[destName] = auraCounter[destName] + 1
 		end
@@ -207,7 +186,7 @@ combatlog:SetScript("OnEvent", function()
 		end	 
 
 		-- if npc, decrease auraCounter for this unit
-		if not tyrPlates:IsPlayerOrPetGUID(destGUID) then
+		if destIsNPC then
 			if not auraCounter[destName] then 
 				auraCounter[destName] = 0
 			else
@@ -234,3 +213,15 @@ combatlog:SetScript("OnEvent", function()
 		end
     end
 end)
+
+function isDMGEvent(event)
+	return relevantEvents.damage[event]
+end
+
+function isHealEvent(event)
+	return relevantEvents.healing[event]
+end
+
+function isRelevantEvent(event)
+	return relevantEvents[event]
+end

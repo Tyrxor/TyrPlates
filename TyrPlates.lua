@@ -69,11 +69,16 @@ function outOfCombatTimer(_, elapsed)
 	end
 end
 
--- checks if the given guid is the guid of a pet or player
+-- checks if the given guid belongs to a player or pet
 function tyrPlates:IsPlayerOrPetGUID(guid)
 	local first3Numbers = tonumber("0x"..strsub(guid, 3,5))
-	if not first3Numbers then return false end
 	return bit.band(first3Numbers,0x00F) == 0 or bit.band(first3Numbers,0x00F) == 4
+end
+
+-- checks if the given guid belongs to an npc
+function tyrPlates:IsNPCGUID(guid)
+	local first3Numbers = tonumber("0x"..strsub(guid, 3,5))
+	return bit.band(first3Numbers,0x00F) == 3
 end
 
 -- check if the given guid is the guid of the player
