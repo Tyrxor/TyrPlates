@@ -12,7 +12,7 @@ function nameplate:UpdateNameplate()
 	if not this.setup then nameplate:CreateNameplate() return end
 	 
 	local healthbar, castbar = this:GetChildren()
-	local healthbarBorder, _, spellIconRegion, glow, nameRegion, level = this:GetRegions()
+	local healthbarBorder, castbarBorder, spellIconRegion, glow, nameRegion, level = this:GetRegions()
 	local unitName = nameRegion:GetText()
 	level:Hide()
   
@@ -97,14 +97,6 @@ function nameplate:UpdateNameplate()
 	
 	-- if unit is a friendly player, check if health- or castbar has to be hidden
 	if this.isFriendly then 
-
-		-- hide this addons castbar
-		if tyrPlates.hideFriendlyCastbar then 
-			healthbar.castbar:Hide()
-		else
-			healthbar.castbar:Show()
-			UpdateNameplateCastbar(this, unitName, healthbar)
-		end
 		
 		-- hide healthbar
 		if tyrPlates.hideFriendlyHealthbar and not this.isLow then  
@@ -118,6 +110,17 @@ function nameplate:UpdateNameplate()
 			nameRegion:Show()
 			glow:Show()
 		end		
+		
+		-- hide this addons castbar
+		if tyrPlates.hideFriendlyCastbar then 
+			castbar:Hide()
+			castbarBorder:Hide()
+			spellIconRegion:Hide()
+			healthbar.castbar:Hide()
+		else
+			healthbar.castbar:Show()
+			UpdateNameplateCastbar(this, unitName)
+		end
 	else
 		healthbar:Show()
 		UpdateNameplateCastbar(this, unitName)
@@ -323,7 +326,7 @@ function UpdateNameplateCastbar(frame, unitName)
 	end
 	
 	local healthbar, originalCastbar = this:GetChildren()
-	local _, _, spellIconRegion = frame:GetRegions()
+	local _, castbarBorder, spellIconRegion = this:GetRegions()
 
 	-- show and update castbar if a cast exist and the default blizzard one isn't shown (not target)
 	if not IsTarget(frame) and castbarDB.castDB[unit] and castbarDB.castDB[unit]["cast"] then --has problems with originalCastbar:IsShown() instaed of IsTarget(), causes delay in visbibility
@@ -377,11 +380,17 @@ function UpdateNameplateCastbar(frame, unitName)
 			spellIconRegion:SetWidth(30)
 			spellIconRegion:SetHeight(30)
 		else
-			spellIconRegion:SetPoint("CENTER", originalCastbar, "CENTER", -70, 4)
+			spellIconRegion:SetPoint("CENTER", originalCastbar, "CENTER", -70, -1)
 			spellIconRegion:SetWidth(14)
 			spellIconRegion:SetHeight(14)
 		end	
 		healthbar.castbar:Hide()
+	end
+	
+	if IsTarget(frame) then
+		originalCastbar:Show()
+		castbarBorder:Show()
+		spellIconRegion:Show()
 	end
 end
 
