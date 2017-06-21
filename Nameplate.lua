@@ -97,7 +97,7 @@ function nameplate:CreateNameplate()
 	
 	if not this.fakename then
 		this.fakename = this:CreateFontString()	
-		this.fakename:SetFont(font,11)
+		this.fakename:SetFont(font,11, "OUTLINE")
 		this.fakename:SetPoint("TOP", this, "Center", 0, 15)
 		this.fakename:SetTextColor(0,1,0)
 	end
