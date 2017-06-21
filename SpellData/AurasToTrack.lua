@@ -140,6 +140,9 @@ spellDB.trackAura.enemy = {
 	["Shield Bash - Silenced"] = "none",
 	["Revenge Stun"] = "none",
 	["Disarm"] = "none",
+	["Battle Stance"] = "none",
+	["Defensive Stance"] = "none",
+	["Berserker Stance"] = "none",
 	
 	--Paladin
 	["Avenging Wrath"] = "Magic",
@@ -280,3 +283,10 @@ spellDB.trackAura.friendly = {
 	["Divine Intervention"] = "Magic",
 	["Stun"] = "Magic",
 }
+
+spellDB.trackAura.invisible = {
+	["Battle Stance"] = "none",
+	["Defensive Stance"] = "none",
+	["Berserker Stance"] = "none",
+	["Interrupt"] = "none",
+	}

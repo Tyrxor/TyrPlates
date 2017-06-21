@@ -353,6 +353,9 @@ spellDB.auraDuration.PvEByName = {
 	
 	--Warrior--
 	--Warrior Arms
+	["Battle Stance"] = 0,
+	["Defensive Stance"] = 0,
+	["Berserker Stance"] = 0,
 	["Charge Stun"] = 1.5,	
 	["Hamstring"] = 15,	
 	["Improved Hamstring"] = 5,	
