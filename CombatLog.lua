@@ -1,3 +1,4 @@
+local Combatlog = CreateFrame("Frame")
 local spellDB = tyrPlates.spellDB
 local castbarDB = tyrPlates.castbarDB
 local auraDB = tyrPlates.auraDB
@@ -5,27 +6,9 @@ local auraDB = tyrPlates.auraDB
 tyrPlates.auraCounter = {}
 local auraCounter = tyrPlates.auraCounter
 
-local relevantEvents = {
-	["SWING_DAMAGE"] = SWING_DAMAGE,
-	["RANGE_DAMAGE"] = RANGE_DAMAGE,
-	["SPELL_DAMAGE"] = SPELL_DAMAGE,
-	["SPELL_PERIODIC_DAMAGE"] = SPELL_PERIODIC_DAMAGE,
-	["SPELL_HEAL"] = SPELL_HEAL,
-	["SPELL_PERIODIC_HEAL"] = SPELL_PERIODIC_HEAL,
-	["SPELL_CAST_START"] = SPELL_CAST_START,
-	["SPELL_CAST_FAILED"] = SPELL_CAST_FAILED,
-	["SPELL_CAST_SUCCESS"] = SPELL_CAST_SUCCESS,
-	["SPELL_INTERRUPT"] = SPELL_INTERRUPT,
-	["SPELL_AURA_APPLIED"] = SPELL_AURA_APPLIED,
-	["SPELL_AURA_APPLIED_DOSE"] = SPELL_AURA_APPLIED_DOSE,
-	["SPELL_AURA_REMOVED_DOSE"] = SPELL_AURA_REMOVED_DOSE,
-	["SPELL_AURA_REMOVED"] = SPELL_AURA_REMOVED,
-	["DAMAGE_SHIELD_MISSED"] = DAMAGE_SHIELD_MISSED,
-	["UNIT_DIED"] = UNIT_DIED,
-}
-local combatlogTracker = CreateFrame("Frame")
-combatlogTracker:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-combatlogTracker:SetScript("OnEvent", function(self, _, ...)
+Combatlog.eventTracker = CreateFrame("Frame")
+Combatlog.eventTracker:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+Combatlog.eventTracker:SetScript("OnEvent", function(self, event, timestamp, combatlogEvent, ...)
 	--ace:print(arg1)		--timestamp
 		--ace:print(arg2)	--event
 		--ace:print(arg3)	--srcGUID
@@ -42,59 +25,52 @@ combatlogTracker:SetScript("OnEvent", function(self, _, ...)
 	--ace:print(arg14)
 	--ace:print(arg15)
 	--ace:print("---")
+	
 	local currentTime = GetTime()
-	if not relevantEvents[event] then return end
-	relevantEvents[event](currentTime, ...)
+	if Combatlog.relevantEvents[combatlogEvent] then
+		Combatlog.relevantEvents[combatlogEvent](currentTime, ...)
+	end
 end)
 
-function SWING_DAMAGE(currentTime, ...)
-	local destGUID, destName, amount = arg6, arg7, arg9
+function SWING_DAMAGE(currentTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, amount)
 	tyrPlates:addDMG(destGUID, destName, amount)
 end
 
-function RANGE_DAMAGE(currentTime, ...)
-	local destGUID, destName, amount = arg6, arg7, arg12
+function RANGE_DAMAGE(currentTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount)
 	tyrPlates:addDMG(destGUID, destName, amount)
 end
 
-function SPELL_DAMAGE(currentTime, ...)
-	local destGUID, destName, amount = arg6, arg7, arg12
+function SPELL_DAMAGE(currentTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount)
 	tyrPlates:addDMG(destGUID, destName, amount)
 end
 
-function SPELL_PERIODIC_DAMAGE(currentTime, ...)
-	local destGUID, destName, amount = arg6, arg7, arg12
+function SPELL_PERIODIC_DAMAGE(currentTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount)
 	tyrPlates:addDMG(destGUID, destName, amount)
 end
 
-function SPELL_HEAL(currentTime, ...)
-	local destGUID, destName, amount = arg6, arg7, arg12
+function SPELL_HEAL(currentTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount)
 	tyrPlates:addHeal(destGUID, destName, amount)
 end
 
-function SPELL_PERIODIC_HEAL(currentTime, ...)
-	local destGUID, destName, amount = arg6, arg7, arg12
+function SPELL_PERIODIC_HEAL(currentTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount)
 	tyrPlates:addHeal(destGUID, destName, amount)
 end
 
 -- triggers if a unit starts casting
 --> add cast to castDB
-function SPELL_CAST_START(currentTime, ...)
-	local timestamp, event, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool = ...
+function SPELL_CAST_START(currentTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool)
 	castbarDB:addCast(srcGUID, srcName, srcFlags, spellId, spellSchool, currentTime)
 end
 
 -- triggers if a unit in your group interrupts a cast by himself (e.g. moving, pressing ESC)
 --> stop unit's current cast
-function SPELL_CAST_FAILED(currentTime, ...)
-	local srcGUID, srcName = arg3, arg4
+function SPELL_CAST_FAILED(currentTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, failedType)
 	castbarDB:StopCast(srcGUID, srcName)
 end
 
 -- triggers from instant spells and channels
 --> try to add spell as aura or channel, stop unit's current cast
-function SPELL_CAST_SUCCESS(currentTime, ...)
-	local timestamp, event, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool = ...
+function SPELL_CAST_SUCCESS(currentTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool)
 	auraDB:AddAura(srcGUID, destGUID, destName, destFlags, spellId, currentTime)
 	castbarDB:StopCast(srcGUID, srcName)
 	-- if spell is a channel, add it as cast
@@ -109,16 +85,14 @@ end
 
 -- triggers if a unit's cast was interrupted by an enemy (e.g. kick, counter spell)
 --> add a spell lock aura to the unit and stop any current casts of the interrupter
-function SPELL_INTERRUPT(currentTime, ...)
-	local timestamp, event, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, interruptedSpellID, interruptedSpellName, interruptedSpellSchool = ...
+function SPELL_INTERRUPT(currentTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, interruptedSpellID, interruptedSpellName, interruptedSpellSchool)
 	auraDB:applySpellLockAura(destGUID, destName, spellName, interruptedSpellSchool, currentTime)
 	castbarDB:StopCast(destGUID, destName)
 end
 
 -- triggers if a aura is applied
 --> adds the aura to the auraDB and interrupts the target if the aura causes a "lose control" effect
-function SPELL_AURA_APPLIED(currentTime, ...)
-	local timestamp, event, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, auraType = ...
+function SPELL_AURA_APPLIED(currentTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, auraType)
 	auraDB:AddAura(srcGUID, destGUID, destName, destFlags, spellId, currentTime)
 	
 	if spellDB.interruptsCast[spellName] then
@@ -141,8 +115,7 @@ function SPELL_AURA_APPLIED(currentTime, ...)
 	end
 end
 
-function SPELL_AURA_REMOVED(currentTime, ...)
-	local timestamp, event, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, auraType = ...
+function SPELL_AURA_REMOVED(currentTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, auraType)
 	auraDB:RemoveAura(destGUID, destName, spellId, spellName, currentTime)
 
 	-- if the aura was created by a channeled spell(e.g. mind flay, drain soul), interrupt the cast of the channeler
@@ -172,25 +145,21 @@ function SPELL_AURA_REMOVED(currentTime, ...)
 	end
 end
 -- gaining stacks
-function SPELL_AURA_APPLIED_DOSE(currentTime, ...)
-	local timestamp, event, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, auraType, amount = ...
+function SPELL_AURA_APPLIED_DOSE(currentTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, auraType, amount)
 	auraDB:AddStacks(destGUID, spellName, amount)
 end
 
 -- losing stacks
-function SPELL_AURA_REMOVED_DOSE(currentTime, ...)
-	local timestamp, event, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, auraType, amount = ...
+function SPELL_AURA_REMOVED_DOSE(currentTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, auraType, amount)
 	auraDB:RemoveStacks(destGUID, spellName, amount)
 end
 
 -- spell miss
-function DAMAGE_SHIELD_MISSED(currentTime, ...)
-	local srcGUID, srcName = arg3, arg4
+function DAMAGE_SHIELD_MISSED(currentTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, missType)
 	castbarDB:StopCast(srcGUID, srcName)
 end
 
-function UNIT_DIED(currentTime, ...)
-	local timestamp, event, srcGUID, srcName, srcFlags, destGUID, destName, destFlags = ...
+function UNIT_DIED(currentTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags)
 	castbarDB:StopCast(destGUID, destName)
 	auraDB:RemoveAllAuras(destGUID, destName)
 	if tyrPlates.healthDiffDB[destGUID] then
@@ -199,3 +168,22 @@ function UNIT_DIED(currentTime, ...)
 		return
 	end
 end
+
+Combatlog.relevantEvents = {
+	["SWING_DAMAGE"] = SWING_DAMAGE,
+	["RANGE_DAMAGE"] = RANGE_DAMAGE,
+	["SPELL_DAMAGE"] = SPELL_DAMAGE,
+	["SPELL_PERIODIC_DAMAGE"] = SPELL_PERIODIC_DAMAGE,
+	["SPELL_HEAL"] = SPELL_HEAL,
+	["SPELL_PERIODIC_HEAL"] = SPELL_PERIODIC_HEAL,
+	["SPELL_CAST_START"] = SPELL_CAST_START,
+	["SPELL_CAST_FAILED"] = SPELL_CAST_FAILED,
+	["SPELL_CAST_SUCCESS"] = SPELL_CAST_SUCCESS,
+	["SPELL_INTERRUPT"] = SPELL_INTERRUPT,
+	["SPELL_AURA_APPLIED"] = SPELL_AURA_APPLIED,
+	["SPELL_AURA_REMOVED"] = SPELL_AURA_REMOVED,
+	["SPELL_AURA_APPLIED_DOSE"] = SPELL_AURA_APPLIED_DOSE,
+	["SPELL_AURA_REMOVED_DOSE"] = SPELL_AURA_REMOVED_DOSE,
+	["DAMAGE_SHIELD_MISSED"] = DAMAGE_SHIELD_MISSED,
+	["UNIT_DIED"] = UNIT_DIED,
+}

@@ -13,7 +13,7 @@ SpellData\AurasToTrack.lua
 HealthDiffDB.lua
 CastbarDB.lua
 AuraDB.lua
-CombatLog.lua
+Combatlog.lua
 Nameplate.lua
 NameplateUpdater.lua
 Config.lua

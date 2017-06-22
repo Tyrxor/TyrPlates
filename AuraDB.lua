@@ -9,7 +9,6 @@ local castReduce = tyrPlates.auraDB.castReduce
 
 --applys auras to players and NPCs
 function auraDB:AddAura(srcGUID, destGUID, destName, destFlags, spellId, currentTime)
-	
 	-- can sometimes be the case if the spell has no target (e.g. cloak of shadows)
 	if not destName then return end
 
