@@ -74,7 +74,7 @@ end
 
 -- adds a channeler to the channelerDB
 function castbarDB:addChanneler(srcGUID, srcName, destGUID, destName, spell)
-	
+
 	local dest
 	if tyrPlates:IsPlayerOrPetGUID(destGUID) then
 		dest = destName
@@ -85,7 +85,8 @@ function castbarDB:addChanneler(srcGUID, srcName, destGUID, destName, spell)
 	if not channelerDB[dest] then
 		channelerDB[dest] = {}
 	end
-	if tyrPlates:IsPlayerOrPetGUID(srcGUID) then
+
+	if not srcGUID or tyrPlates:IsPlayerOrPetGUID(srcGUID) then
 		channelerDB[dest][spell] = srcName
 	else
 		channelerDB[dest][spell] = srcGUID

@@ -20,14 +20,12 @@ function auraDB:AddAura(srcGUID, destGUID, destName, destFlags, spellId, current
 	if auraName == "Health Funnel" then
 		local healthFunnelCaster = findHealthFunnelCaster(currentTime)
 		if healthFunnelCaster then
-			castbarDB:addChanneler(healthFunnelCaster, healthFunnelCaster, destGUID, destName, auraName)
+			castbarDB:addChanneler(nil, healthFunnelCaster, destGUID, destName, auraName)
 		end
 	end
-	
+
 	--check if aura has to be shown/applied
 	if shouldBeTracked(auraName, spellId, isOwn, isFriendly) then
-		
-		--ace:print("add "..spellId)
 		
 		local auraDuration
 		local ccCategories

@@ -94,13 +94,12 @@ end
 --> adds the aura to the auraDB and interrupts the target if the aura causes a "lose control" effect
 function SPELL_AURA_APPLIED(currentTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, auraType)
 	auraDB:AddAura(srcGUID, destGUID, destName, destFlags, spellId, currentTime)
-	
 	if spellDB.interruptsCast[spellName] then
 		castbarDB:StopCast(destGUID, destName)
 	end
 	
 	-- if npc, increase auraCounter for this unit
-	if destIsNPC then
+	if tyrPlates:IsNPCGUID(destGUID) then
 		if not auraCounter[destName] then auraCounter[destName] = 0 end
 		auraCounter[destName] = auraCounter[destName] + 1
 	end
@@ -136,7 +135,7 @@ function SPELL_AURA_REMOVED(currentTime, srcGUID, srcName, srcFlags, destGUID, d
 	end	 
 
 	-- if npc, decrease auraCounter for this unit
-	if destIsNPC then
+	if tyrPlates:IsNPCGUID(destGUID) then
 		if not auraCounter[destName] then 
 			auraCounter[destName] = 0
 		else
