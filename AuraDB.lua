@@ -239,7 +239,8 @@ function auraDB:RemoveAllAuras(destGUID, destName)
 	end  
 end
 
-function auraDB:AddStack(destGUID, aura)
+function auraDB:AddStacks(destGUID, aura, amount)
+	local dest
 	local dest
 	if tyrPlates:IsPlayerOrPetGUID(destGUID) then
 		dest = destName
@@ -248,7 +249,28 @@ function auraDB:AddStack(destGUID, aura)
 	end
 	
 	if auraDB[dest] and auraDB[dest][aura] then
-		auraDB[dest][aura]["stacks"] = auraDB[dest][aura]["stacks"] + 1
+		auraDB[dest][aura]["stacks"] = auraDB[dest][aura]["stacks"] + amount
+	end
+	
+	if castbarDB.specialAuras[spellName] then
+		tyrPlates.auraDB.castReduce[destName][spellName] = tyrPlates.auraDB.castReduce[destName][spellName] + 1
+	end
+end
+
+function auraDB:RemoveStacks(destGUID, aura, amount)
+	local dest
+	if tyrPlates:IsPlayerOrPetGUID(destGUID) then
+		dest = destName
+	else
+		dest = destGUID
+	end
+	
+	if auraDB[dest] and auraDB[dest][aura] then
+		auraDB[dest][aura]["stacks"] = auraDB[dest][aura]["stacks"] - amount
+	end
+	
+	if castbarDB.specialAuras[spellName] then
+		tyrPlates.auraDB.castReduce[destName][spellName] = tyrPlates.auraDB.castReduce[destName][spellName] - amount
 	end
 end
 
