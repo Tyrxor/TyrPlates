@@ -139,6 +139,7 @@ spellDB.auraDuration.PvEByName = {
 	--Mage Fire
 	["Blast Wave"] = 6,
 	["Blazing Speed"] = 8,
+	["Combustion"] = 0,
 	["Dragon's Breath"] = 3,
 	["Fire Ward"] = 30,
 	["Molten Armor"] = 1800,
@@ -512,6 +513,9 @@ spellDB.auraDuration.PvEByName = {
 -- aura duration on NPCs by spellId
 spellDB.auraDuration.PvE = {
 [66] = 6, --Invisibility (Mage)
+[23454] = 1, --Stun (Unstoppable Force)
+[20170] = 2, --Stun (Weapon)
+[34510] = 4, --Stun (Weapon)
 [32612] = 20, --Invisibility (Mage)
 [31125] = 8, --Dazed (Blade Twisting)
 [14874] = 10, --Rupture (NPC)
