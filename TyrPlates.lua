@@ -90,6 +90,18 @@ function tyrPlates:isFriendly(flags)
 	return bit.band(flags,0x00000010) ~= 0
 end
 
+function tyrPlates:isEnemy(flags)
+	return bit.band(flags,0x00000040) ~= 0
+end
+
+function tyrPlates:isPlayer(flags)
+	return bit.band(flags,0x00000100) ~= 0
+end
+
+function tyrPlates:isEnemyPlayer(flags)
+	return tyrPlates:isEnemy(flags) and tyrPlates:isPlayer(flags) and bit.band(flags,0x00000400) ~= 0
+end
+
 function tyrPlates:ClearTable(Table)
 	if not Table then ace:print("empty table") return end
 	for element in pairs (Table) do
