@@ -3,7 +3,7 @@ tyrPlates.healthDiffDB = {}
 local healthDiffDB = tyrPlates.healthDiffDB
 
 function tyrPlates:addDMG(GUID, name, damage)
-	if tyrPlates:IsPlayerOrPetGUID(GUID) then return end
+	if tyrPlates:IsPlayerGUID(GUID) then return end
 	local oldHealthDiff = getHealthDiff(GUID)
 	local newHealthDiff = oldHealthDiff + damage
 	setHealthDiff(GUID, name, oldHealthDiff, newHealthDiff)
@@ -11,7 +11,7 @@ end
 
 function tyrPlates:addHeal(GUID, name, healing)
 
-	if tyrPlates:IsPlayerOrPetGUID(GUID) then return end
+	if tyrPlates:IsPlayerGUID(GUID) then return end
 
 	local oldHealthDiff = getHealthDiff(GUID)
 	local newHealthDiff = oldHealthDiff - healing

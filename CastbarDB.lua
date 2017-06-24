@@ -35,7 +35,7 @@ function castbarDB:addCast(srcGUID, srcName, srcFlags, spellId, spellSchool, cur
 		castTime = spellDB.channelDuration[spellName]
 	end
 	
-	if tyrPlates:IsPlayerOrPetGUID(srcGUID) then	
+	if tyrPlates:IsPlayerGUID(srcGUID) then	
 		-- reduce cast time if the casted spell can be reduced by talents (e.g. fireball, shadowbolt)
 		if spellDB.reducedCastTime[spellName] then
 			castTime = castTime - spellDB.reducedCastTime[spellName]
@@ -63,15 +63,27 @@ function castbarDB:addCast(srcGUID, srcName, srcFlags, spellId, spellSchool, cur
 	castDB[source] = {cast = spellName, startTime = currentTime, castTime = castTime, icon = spellIcon, school = spellSchool, pushbackCounter = 0}
 end
 
-function castbarDB:resetCast(identifier)
-	if castbarDB.castDB[identifier] then castbarDB.castDB[identifier] = nil end
+function castbarDB:resetCast(GUID, name)
+	if tyrPlates:IsPlayerGUID(GUID) then
+		castbarDB:resetPlayerCast(name)
+	else
+		castbarDB:resetNPCCast(GUID)
+	end
+end
+
+function castbarDB:resetPlayerCast(name)
+	if castbarDB.castDB[name] then castbarDB.castDB[name] = nil end
+end
+
+function castbarDB:resetNPCCast(GUID)
+	if castbarDB.castDB[GUID] then castbarDB.castDB[GUID] = nil end
 end
 
 -- adds a channeler to the channelerDB
 function castbarDB:addChanneler(srcGUID, srcName, destGUID, destName, spell)
 
 	local dest
-	if tyrPlates:IsPlayerOrPetGUID(destGUID) then
+	if tyrPlates:IsPlayerGUID(destGUID) then
 		dest = destName
 	else
 		dest = destGUID
@@ -81,7 +93,7 @@ function castbarDB:addChanneler(srcGUID, srcName, destGUID, destName, spell)
 		channelerDB[dest] = {}
 	end
 
-	if not srcGUID or tyrPlates:IsPlayerOrPetGUID(srcGUID) then
+	if not srcGUID or tyrPlates:IsPlayerGUID(srcGUID) then
 		channelerDB[dest][spell] = srcName
 	else
 		channelerDB[dest][spell] = srcGUID

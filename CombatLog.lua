@@ -62,11 +62,7 @@ end
 -- triggers if a unit in your group interrupts a cast by himself (e.g. moving, pressing ESC)
 --> stop unit's current cast
 function SPELL_CAST_FAILED(eventStartTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, failedType)
-	if tyrPlates:IsPlayerOrPetGUID(srcGUID) then
-		castbarDB:resetCast(srcName)
-	else
-		castbarDB:resetCast(srcGUID)
-	end
+	castbarDB:resetCast(srcGUID, srcName)
 end
 
 -- triggers from instant spells and channels
@@ -88,16 +84,14 @@ end
 --> add a spell lock aura to the unit and stop any current casts of the interrupter
 function SPELL_INTERRUPT(eventStartTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, interruptedSpellID, interruptedSpellName, interruptedSpellSchool)
 	auraDB:applySpellLockAura(destGUID, destName, spellName, interruptedSpellSchool, eventStartTime)
-	castbarDB:ResetCast(destGUID, destName)
+	castbarDB:resetCast(destGUID, destName)
 end
 
 -- triggers if a aura is applied
 --> adds the aura to the auraDB and interrupts the target if the aura causes a "lose control" effect
 function SPELL_AURA_APPLIED(eventStartTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, auraType)
 	auraDB:AddAura(srcGUID, destGUID, destName, destFlags, spellId, eventStartTime)
-	if spellDB.interruptsCast[spellName] then
-		castbarDB:resetCast(destGUID, destName)
-	end
+	castbarDB:resetCast(destGUID, destName)
 	
 	--check if sapped
 	if spellName == "Sap" and tyrPlates:IsOwnGUID(destGUID) then
@@ -141,22 +135,22 @@ end
 
 -- spell miss
 function DAMAGE_SHIELD_MISSED(eventStartTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, missType)
-	castbarDB:ResetCast(srcGUID, srcName)
+	castbarDB:resetCast(srcGUID, srcName)
 end
 
 function UNIT_DIED(eventStartTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags)
 	ResetUnit(destGUID, destName)
 end
 
-function resetPetOrPlayer(name)
-	castbarDB:resetCast(name)
+function resetPlayer(name)
+	castbarDB:resetPlayerCast(name)
 	auraDB:resetAuras(name, name)
 	resetPlayerCastSpeed(name)
 	auraDB:resetDR(name)
 end
 
 function resetNPC(GUID, name)
-	castbarDB:resetCast(GUID)
+	castbarDB:resetNPCCast(GUID)
 	auraDB:resetAuras(GUID, name)
 	castbarDB:resetNPCCastSpeed(GUID)
 	auraDB:resetDR(GUID)
@@ -164,8 +158,8 @@ function resetNPC(GUID, name)
 end
 
 function ResetUnit(unitGUID, unitName)	
-	if tyrPlates:IsPlayerOrPetGUID(unitGUID) then
-		resetPetOrPlayer(unitName)
+	if tyrPlates:IsPlayerGUID(unitGUID) then
+		resetPlayer(unitName)
 	else 
 		resetNPC(unitGUID, unitName)
 	end

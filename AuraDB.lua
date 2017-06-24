@@ -41,7 +41,7 @@ function auraDB:AddAura(srcGUID, destGUID, destName, destFlags, spellId, applica
 		end
 		
 		-- set reference, CC category and the auraDuration table depending on wheter the target is a player or not
-		if tyrPlates:IsPlayerOrPetGUID(destGUID) then
+		if tyrPlates:IsPlayerGUID(destGUID) then
 			dest = destName
 			ccCategories = spellDB.ccCategories.PvP
 			auraDuration = spellDB.auraDuration.PvP[auraName] or spellDB.auraDuration.PvE[spellId] or spellDB.auraDuration.PvEByName[auraName]	
@@ -159,7 +159,7 @@ function auraDB:applySpellLockAura(destGUID, destName, spell, school, interruptT
 
 	local schoolIcon = spellDB.spellSchoolIcon[school]
 	
-	if tyrPlates:IsPlayerOrPetGUID(destGUID) then
+	if tyrPlates:IsPlayerGUID(destGUID) then
 		dest = destName
 	else
 		dest = destGUID
@@ -177,7 +177,7 @@ function auraDB:RemoveAura(destGUID, destName, spellId, aura, removalTime)
 	local ccCategories
 
 	-- set reference and CC category depending on wheter the target is a player or not
-	if tyrPlates:IsPlayerOrPetGUID(destGUID) then
+	if tyrPlates:IsPlayerGUID(destGUID) then
 		dest = destName
 		ccCategories = spellDB.ccCategories.PvP
 	else
@@ -229,7 +229,7 @@ end
 function auraDB:AddStacks(destGUID, aura, amount)
 	local dest
 	local dest
-	if tyrPlates:IsPlayerOrPetGUID(destGUID) then
+	if tyrPlates:IsPlayerGUID(destGUID) then
 		dest = destName
 	else
 		dest = destGUID
@@ -246,7 +246,7 @@ end
 
 function auraDB:RemoveStacks(destGUID, aura, amount)
 	local dest
-	if tyrPlates:IsPlayerOrPetGUID(destGUID) then
+	if tyrPlates:IsPlayerGUID(destGUID) then
 		dest = destName
 	else
 		dest = destGUID
