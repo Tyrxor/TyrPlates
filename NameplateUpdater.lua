@@ -469,14 +469,8 @@ function UpdateUnitAuras(unitIdentifier, unit, isfriendly)
 				--ace:print("remove ".. aura .. " from "..unitIdentifier)
 				auraDB[unitIdentifier][aura] = nil
 				if not UnitIsPlayer(unit) then
-					local name = UnitName(unit)
-					if not tyrPlates.auraCounter[name] then 
-						tyrPlates.auraCounter[name] = 0
-					else
-						tyrPlates.auraCounter[name] = tyrPlates.auraCounter[name] - 1
-					end
-					if tyrPlates.auraCounter[name] < 0 then tyrPlates.auraCounter[name] = 0 end
-					ace:print(tyrPlates.auraCounter[name])
+					local unitName = UnitName(unit)
+					auraDB:decreaseAuraCounter(unitName)
 				end
 			end
 		end
@@ -513,10 +507,8 @@ function UpdateUnitAurasByauraType(unitIdentifier, unit, isfriendly, currentTime
 			end
 			
 			if not UnitIsPlayer(unit) then
-			local name = UnitName(unit)
-				if not tyrPlates.auraCounter[name] then tyrPlates.auraCounter[name] = 0 end
-				tyrPlates.auraCounter[name] = tyrPlates.auraCounter[name] + 1
-				ace:print(tyrPlates.auraCounter[name])
+			local unitName = UnitName(unit)
+				auraDB:increaseAuraCounter(unitName)
 			end
 			
 			auraFound[auraName] = true			

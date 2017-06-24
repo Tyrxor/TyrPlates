@@ -9,17 +9,17 @@ local auraCounter = tyrPlates.auraCounter
 local castReduce = tyrPlates.auraDB.castReduce
 
 --applys auras to players and NPCs
-function auraDB:AddAura(srcGUID, destGUID, destName, destFlags, spellId, currentTime)
+function auraDB:AddAura(srcGUID, destGUID, destName, destFlags, spellId, applicationTime)
 	-- can sometimes be the case if the spell has no target (e.g. cloak of shadows)
 	if not destName then return end
 
 	local auraName, _, AuraIcon = GetSpellInfo(spellId)
-	local isOwn = tyrPlates:IsOwnGUID(srcGUID) or IsOwnCast(auraName, currentTime)
+	local isOwn = tyrPlates:IsOwnGUID(srcGUID) or IsOwnCast(auraName, applicationTime)
 	local isFriendly = tyrPlates:isFriendly(destFlags)
 
 	-- if aura was health funnel then find it's caster, add caster to the channelerDB
 	if auraName == "Health Funnel" then
-		local healthFunnelCaster = findHealthFunnelCaster(currentTime)
+		local healthFunnelCaster = findHealthFunnelCaster(applicationTime)
 		if healthFunnelCaster then
 			castbarDB:addChanneler(nil, healthFunnelCaster, destGUID, destName, auraName)
 		end
@@ -65,31 +65,29 @@ function auraDB:AddAura(srcGUID, destGUID, destName, destFlags, spellId, current
 
 		-- check if the aura is influenced by a diminishing return
 		if ccCategories[auraName] then
-			auraDuration = incorparateDiminisingReturn(dest, auraName, auraDuration, ccCategories, currentTime)
+			auraDuration = incorparateDiminisingReturn(dest, auraName, auraDuration, ccCategories, applicationTime)
 		end
 				
 		-- add aura to auraDB
 		if not auraDB[dest] then auraDB[dest] = {} end	
 		if not auraDB[dest][auraName] then
-			auraDB[dest][auraName] = {startTime = currentTime, stacks = 1, duration = auraDuration, icon = AuraIcon, auraType = auraType, isOwn = isOwn}
+			auraDB[dest][auraName] = {startTime = applicationTime, stacks = 1, duration = auraDuration, icon = AuraIcon, auraType = auraType, isOwn = isOwn}
 			
 			-- if npc, increase auraCounter for this unit
 			if tyrPlates:IsNPCGUID(destGUID) then
-				if not auraCounter[destName] then auraCounter[destName] = 0 end
-				auraCounter[destName] = auraCounter[destName] + 1
-				ace:print(auraCounter[destName])
+				auraDB:increaseAuraCounter(destName)
 			end
 		else
-				auraDB[dest][auraName]["startTime"] = currentTime
+				auraDB[dest][auraName]["startTime"] = applicationTime
 				auraDB[dest][auraName]["duration"] = auraDuration		
 		end
 		--ace:print(auraName.." added")
 		
 		-- if aura was seduction then find it's caster, add caster to the channelerDB
 		if auraName == "Seduction" then
-			local seductionCaster = findSeductionCaster(currentTime)
+			local seductionCaster = findSeductionCaster(applicationTime)
 			if seductionCaster then
-				castbarDB.castDB[seductionCaster] = {cast = auraName, startTime = currentTime, castTime = auraDuration, icon = AuraIcon, school = 32, pushbackCounter = 0}
+				castbarDB.castDB[seductionCaster] = {cast = auraName, startTime = applicationTime, castTime = auraDuration, icon = AuraIcon, school = 32, pushbackCounter = 0}
 				castbarDB:addChanneler(seductionCaster, seductionCaster, destGUID, destName, auraName)
 			end
 		end
@@ -122,7 +120,7 @@ end
 
 -- checks if the duration of the aura has to be reduced because of the diminishing returns mechanic
 -- adds an entry in the DRDB that for every player tracks auras gained from each CC group (e.g. stuns, fear, roots)
-function incorparateDiminisingReturn(dest, aura, auraDuration, ccCategories, currentTime)
+function incorparateDiminisingReturn(dest, aura, auraDuration, ccCategories, applicationTime)
 				
 	local ccGroup = ccCategories[aura]
 	if ccGroup == "self" then
@@ -141,7 +139,7 @@ function incorparateDiminisingReturn(dest, aura, auraDuration, ccCategories, cur
 	end
 					
 	-- if last aura of this group was more than 15s ago, reset the diminishing return coefficient
-	if DRDB[dest][ccGroup.."timer"] and (currentTime - DRDB[dest][ccGroup.."timer"]) > 15 then
+	if DRDB[dest][ccGroup.."timer"] and (applicationTime - DRDB[dest][ccGroup.."timer"]) > 15 then
 		DRDB[dest][ccGroup] = 1
 	end
 							
@@ -154,7 +152,7 @@ function incorparateDiminisingReturn(dest, aura, auraDuration, ccCategories, cur
 end
 
 -- applies an aura on units showing the duration their spell school is locked out
-function auraDB:applySpellLockAura(destGUID, destName, spell, school, currentTime)
+function auraDB:applySpellLockAura(destGUID, destName, spell, school, interruptTime)
 
 	local dest
 	local lockOutDuration = spellDB.interrupt[spell]
@@ -169,11 +167,11 @@ function auraDB:applySpellLockAura(destGUID, destName, spell, school, currentTim
 	
 	-- add an artificial aura to the auraDB
 	if not auraDB[dest] then auraDB[dest] = {} end
-	auraDB[dest]["interrupt"] = {startTime = currentTime, stacks = 1,  duration = lockOutDuration, auraIcon = icon, auraType = "school", isOwn = false}	
+	auraDB[dest]["interrupt"] = {startTime = interruptTime, stacks = 1,  duration = lockOutDuration, auraIcon = icon, auraType = "school", isOwn = false}	
 end
 
 -- removes an aura from the auraDB
-function auraDB:RemoveAura(destGUID, destName, spellId, aura, currentTime)
+function auraDB:RemoveAura(destGUID, destName, spellId, aura, removalTime)
 
 	local dest
 	local ccCategories
@@ -201,13 +199,7 @@ function auraDB:RemoveAura(destGUID, destName, spellId, aura, currentTime)
 			
 			-- if npc, decrease auraCounter for this unit
 			if tyrPlates:IsNPCGUID(destGUID) then
-				if not auraCounter[destName] then 
-					auraCounter[destName] = 0
-				else
-					auraCounter[destName] = auraCounter[destName] - 1
-				end
-				if auraCounter[destName] < 0 then auraCounter[destName] = 0 end
-				ace:print(auraCounter[destName])
+				auraDB:decreaseAuraCounter(destName)
 			end
 			--ace:print("removed "..aura)
 	
@@ -221,7 +213,7 @@ function auraDB:RemoveAura(destGUID, destName, spellId, aura, currentTime)
 				
 				-- start diminishing return timer for the CC group of the removed aura
 				if DRDB[dest] and DRDB[dest][ccGroup] then
-					DRDB[dest][ccGroup.."timer"] = currentTime
+					DRDB[dest][ccGroup.."timer"] = removalTime
 				end
 			end
 		end
@@ -232,83 +224,6 @@ function auraDB:RemoveAura(destGUID, destName, spellId, aura, currentTime)
 			castReduce[destName][aura] = nil
 		end
 	end
-end
-
-function resetPetOrPlayer(destName)
-	-- reset auras
-	if auraDB[destName] then
-		for aura in pairs (auraDB[destName]) do
-			if not auraCounter[destName] then 
-				auraCounter[destName] = 0
-			else
-				auraCounter[destName] = auraCounter[destName] - 1
-			end
-			if auraCounter[destName] < 0 then auraCounter[destName] = 0 end
-			ace:print(auraCounter[destName])
-		end
-		tyrPlates:ClearTable(auraDB[destName])
-	end
-	
-	-- reset DR
-	if DRDB[destName] then
-		tyrPlates:ClearTable(DRDB[destName])
-	end
-	
-	-- reset castspeed
-	castbarDB.castingSpeedDB[destName] = 1
-end
-
-function resetNPC(destGUID, destName)
-	-- reset auras
-	if auraDB[destGUID] then
-		for aura in pairs (auraDB[destGUID]) do
-			if not auraCounter[destName] then 
-				auraCounter[destName] = 0
-			else
-				auraCounter[destName] = auraCounter[destName] - 1
-			end
-			if auraCounter[destName] < 0 then auraCounter[destName] = 0 end
-			ace:print(auraCounter[destName])
-		end
-		tyrPlates:ClearTable(auraDB[destGUID])
-	end
-	
-	-- reset DR
-	if DRDB[destGUID] then
-		tyrPlates:ClearTable(DRDB[destGUID])
-	end
-	
-	-- reset castspeed
-	castbarDB.castingSpeedDB[destGUID] = 1
-end
-
--- removes all auras on a unit after it's death
-function auraDB:RemoveAllAuras(destGUID, destName)
-
-	if tyrPlates:IsPlayerOrPetGUID(destGUID) then
-		resetPetOrPlayer(destName)
-	else 
-		resetNPC(destGUID, destName)
-	end
-	--[[
-	if tyrPlates:IsPlayerOrPetGUID(destGUID) then
-		if auraDB[destName] then
-			tyrPlates:ClearTable(auraDB[destName])
-		end
-		if DRDB[destName] then
-			tyrPlates:ClearTable(DRDB[destName])
-		end
-	elseif auraDB[destGUID] then
-		for aura in pairs(auraDB[destGUID]) do
-			auraDB[destGUID][aura] = nil
-		end
-		auraDB[destGUID] = nil
-		
-		if DRDB[destGUID] then
-			tyrPlates:ClearTable(DRDB[destGUID])
-		end
-	end  
-	]]
 end
 
 function auraDB:AddStacks(destGUID, aura, amount)
@@ -360,14 +275,14 @@ function IsOwnCast(spell, currentTime)
 end
 
 -- finds the caster responsible for applying the seduction aura
-function findSeductionCaster(currentTime)
+function findSeductionCaster(applicationTime)
 	local seductionCastTime = 1.5
 	local offset = 0.5
 	for caster, spell in pairs(castbarDB.castDB) do
 		if spell["cast"] == "Seduction" then
 			local startTime = spell["startTime"]
 			local endTime = startTime + seductionCastTime
-			if currentTime < endTime + offset and currentTime > endTime - offset then
+			if applicationTime < endTime + offset and applicationTime > endTime - offset then
 				return caster
 			end
 		end
@@ -376,15 +291,44 @@ function findSeductionCaster(currentTime)
 end
 
 -- finds the caster responsible for applying the health funnel aura
-function findHealthFunnelCaster(currentTime)
+function findHealthFunnelCaster(applicationTime)
 	local offset = 0.5
 	for caster, spell in pairs(castbarDB.castDB) do
 		if spell["cast"] == "Health Funnel" then
 			local startTime = spell["startTime"]
-			if currentTime < startTime + offset and currentTime > startTime then
+			if applicationTime < startTime + offset and applicationTime > startTime then
 				return caster
 			end
 		end
 	end
 	return nil
 end
+
+function auraDB:increaseAuraCounter(destName)
+	if not auraCounter[destName] then auraCounter[destName] = 0 end
+	auraCounter[destName] = auraCounter[destName] + 1
+end
+
+function auraDB:decreaseAuraCounter(destName)
+	if not auraCounter[destName] then 
+		auraCounter[destName] = 0
+	else
+		auraCounter[destName] = auraCounter[destName] - 1
+	end
+	if auraCounter[destName] < 0 then auraCounter[destName] = 0 end
+end
+
+function auraDB:resetAuras(identifier, name)
+	if auraDB[identifier] then
+		for aura in pairs (auraDB[identifier]) do
+			auraDB:decreaseAuraCounter(name)
+		end
+		tyrPlates:ClearTable(auraDB[identifier])
+	end
+end
+
+function auraDB:resetDR(identifier)
+	if DRDB[identifier] then tyrPlates:ClearTable(DRDB[identifier]) end
+end
+
+

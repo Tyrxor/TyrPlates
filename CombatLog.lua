@@ -62,14 +62,18 @@ end
 -- triggers if a unit in your group interrupts a cast by himself (e.g. moving, pressing ESC)
 --> stop unit's current cast
 function SPELL_CAST_FAILED(eventStartTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, failedType)
-	castbarDB:StopCast(srcGUID, srcName)
+	if tyrPlates:IsPlayerOrPetGUID(srcGUID) then
+		castbarDB:resetCast(srcName)
+	else
+		castbarDB:resetCast(srcGUID)
+	end
 end
 
 -- triggers from instant spells and channels
 --> try to add spell as aura or channel, stop unit's current cast
 function SPELL_CAST_SUCCESS(eventStartTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool)
 	auraDB:AddAura(srcGUID, destGUID, destName, destFlags, spellId, eventStartTime)
-	castbarDB:StopCast(srcGUID, srcName)
+	castbarDB:resetCast(srcGUID, srcName)
 	-- if spell is a channel, add it as cast
 	if spellDB.channelDuration[spellName] then
 		castbarDB:addCast(srcGUID, srcName, srcFlags, spellId, spellSchool, eventStartTime)
@@ -84,7 +88,7 @@ end
 --> add a spell lock aura to the unit and stop any current casts of the interrupter
 function SPELL_INTERRUPT(eventStartTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, interruptedSpellID, interruptedSpellName, interruptedSpellSchool)
 	auraDB:applySpellLockAura(destGUID, destName, spellName, interruptedSpellSchool, eventStartTime)
-	castbarDB:StopCast(destGUID, destName)
+	castbarDB:ResetCast(destGUID, destName)
 end
 
 -- triggers if a aura is applied
@@ -92,7 +96,7 @@ end
 function SPELL_AURA_APPLIED(eventStartTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, auraType)
 	auraDB:AddAura(srcGUID, destGUID, destName, destFlags, spellId, eventStartTime)
 	if spellDB.interruptsCast[spellName] then
-		castbarDB:StopCast(destGUID, destName)
+		castbarDB:resetCast(destGUID, destName)
 	end
 	
 	--check if sapped
@@ -137,16 +141,33 @@ end
 
 -- spell miss
 function DAMAGE_SHIELD_MISSED(eventStartTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, missType)
-	castbarDB:StopCast(srcGUID, srcName)
+	castbarDB:ResetCast(srcGUID, srcName)
 end
 
 function UNIT_DIED(eventStartTime, srcGUID, srcName, srcFlags, destGUID, destName, destFlags)
-	castbarDB:StopCast(destGUID, destName)
-	auraDB:RemoveAllAuras(destGUID, destName)
-	if tyrPlates.healthDiffDB[destGUID] then
-		local oldAmount = tyrPlates.healthDiffDB[destGUID]
-		tyrPlates.healthDiffDB[oldAmount..destName] = nil
-		return
+	ResetUnit(destGUID, destName)
+end
+
+function resetPetOrPlayer(name)
+	castbarDB:resetCast(name)
+	auraDB:resetAuras(name, name)
+	resetPlayerCastSpeed(name)
+	auraDB:resetDR(name)
+end
+
+function resetNPC(GUID, name)
+	castbarDB:resetCast(GUID)
+	auraDB:resetAuras(GUID, name)
+	castbarDB:resetNPCCastSpeed(GUID)
+	auraDB:resetDR(GUID)
+	tyrPlates:resetHealthDiff(GUID, name)
+end
+
+function ResetUnit(unitGUID, unitName)	
+	if tyrPlates:IsPlayerOrPetGUID(unitGUID) then
+		resetPetOrPlayer(unitName)
+	else 
+		resetNPC(unitGUID, unitName)
 	end
 end
 

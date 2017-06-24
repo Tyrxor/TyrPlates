@@ -63,13 +63,8 @@ function castbarDB:addCast(srcGUID, srcName, srcFlags, spellId, spellSchool, cur
 	castDB[source] = {cast = spellName, startTime = currentTime, castTime = castTime, icon = spellIcon, school = spellSchool, pushbackCounter = 0}
 end
 
--- stop a cast or channel by deleting it from the castDB
-function castbarDB:StopCast(srcGUID, srcName)
-  if tyrPlates:IsPlayerOrPetGUID(srcGUID) and castDB[srcName] then
-    castDB[srcName] = nil
-  elseif castDB[srcGUID] then
-    castDB[srcGUID] = nil
-  end
+function castbarDB:resetCast(identifier)
+	if castbarDB.castDB[identifier] then castbarDB.castDB[identifier] = nil end
 end
 
 -- adds a channeler to the channelerDB
@@ -138,3 +133,11 @@ pushbackTracker:SetScript("OnEvent", function()
 		castDB[unitName]["pushbackCounter"] = 4
 	end
 end)
+
+function castbarDB:resetPlayerCastSpeed(name)
+	castbarDB.castingSpeedDB[name] = 1
+end
+
+function castbarDB:resetNPCCastSpeed(GUID)
+	castbarDB.castingSpeedDB[GUID] = 1
+end

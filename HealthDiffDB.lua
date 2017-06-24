@@ -2,32 +2,40 @@
 tyrPlates.healthDiffDB = {}
 local healthDiffDB = tyrPlates.healthDiffDB
 
-function tyrPlates:addDMG(destGUID, destName, damage)
-	if tyrPlates:IsPlayerOrPetGUID(destGUID) then return end
-	local oldHealthDiff = getHealthDiff(destGUID)
+function tyrPlates:addDMG(GUID, name, damage)
+	if tyrPlates:IsPlayerOrPetGUID(GUID) then return end
+	local oldHealthDiff = getHealthDiff(GUID)
 	local newHealthDiff = oldHealthDiff + damage
-	setHealthDiff(destGUID, destName, oldHealthDiff, newHealthDiff)
+	setHealthDiff(GUID, name, oldHealthDiff, newHealthDiff)
 end
 
-function tyrPlates:addHeal(destGUID, destName, healing)
+function tyrPlates:addHeal(GUID, name, healing)
 
-	if tyrPlates:IsPlayerOrPetGUID(destGUID) then return end
+	if tyrPlates:IsPlayerOrPetGUID(GUID) then return end
 
-	local oldHealthDiff = getHealthDiff(destGUID)
+	local oldHealthDiff = getHealthDiff(GUID)
 	local newHealthDiff = oldHealthDiff - healing
 	if newHealthDiff < 0 then newHealthDiff = 0 end -- ignore overheal		
-	setHealthDiff(destGUID, destName, oldHealthDiff, newHealthDiff)
+	setHealthDiff(GUID, name, oldHealthDiff, newHealthDiff)
 end
 
-function getHealthDiff(destGUID)
-	if not healthDiffDB[destGUID] then
-		healthDiffDB[destGUID] = 0
+function getHealthDiff(GUID)
+	if not healthDiffDB[GUID] then
+		healthDiffDB[GUID] = 0
 	end
-	return healthDiffDB[destGUID]
+	return healthDiffDB[GUID]
 end
 
-function setHealthDiff(destGUID, destName, oldHealthDiff, newHealthDiff)
-	healthDiffDB[destGUID] = newHealthDiff
-	healthDiffDB[oldHealthDiff..destName] = nil
-	healthDiffDB[newHealthDiff..destName] = destGUID
+function setHealthDiff(GUID, name, oldHealthDiff, newHealthDiff)
+	healthDiffDB[GUID] = newHealthDiff
+	healthDiffDB[oldHealthDiff..name] = nil
+	healthDiffDB[newHealthDiff..name] = GUID
+end
+
+function tyrPlates:resetHealthDiff(GUID, name)
+	if tyrPlates.healthDiffDB[GUID] then
+		local oldAmount = tyrPlates.healthDiffDB[GUID]
+		tyrPlates.healthDiffDB[oldAmount..name] = nil
+		tyrPlates.healthDiffDB[GUID] = nil
+	end
 end
