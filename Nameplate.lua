@@ -100,6 +100,7 @@ function nameplate:CreateNameplate()
 		this.fakename:SetFont(font,11, "OUTLINE")
 		this.fakename:SetPoint("TOP", this, "Center", 0, 15)
 		this.fakename:SetTextColor(0,1,0)
+		this.fakename:Hide()
 	end
  
 	CreateHealthText(this)

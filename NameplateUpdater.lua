@@ -61,6 +61,7 @@ function nameplate:UpdateNameplate()
 			else
 				this.fakename:SetTextColor(0,1,0)
 			end
+			this.fakename:Show()
 		end
 	else
 		this:SetAlpha(0.99)	
@@ -75,8 +76,9 @@ function nameplate:UpdateNameplate()
 			else
 				this.fakename:SetTextColor(0,1,0)
 			end
+			this.fakename:Show()
 		else
-			this.fakename:SetText("")
+			this.fakename:Hide()
 		end	
 	end
 	
@@ -86,7 +88,7 @@ function nameplate:UpdateNameplate()
 		this.fakename:SetPoint("TOP", this, "Center", 0, 25)	
 	end
   
-	if MouseIsOver(this, 0, 0, 0, 0) then
+	if MouseIsOver(this, 0, 0, 0, 0) then --should also work if healthbar is hidden
 		local mouseoverGUID = UnitGUID("mouseover")
 		if mouseoverGUID and not tyrPlates:IsNPCGUID(mouseoverGUID) then
 			nameplate.nameplateByGUID[this] = mouseoverGUID
@@ -128,6 +130,29 @@ function nameplate:UpdateNameplate()
 	UpdateNameplateAuras(this, unitName, healthbar)	
 end
 
+function getIterator(auraTable)
+	local iterator = {}
+	local takenAuras = {}
+	local i = 1
+	for _, auraName in ipairs(spellDB.trackPrio) do
+		if auraTable[auraName] then
+			iterator[i] = auraName
+			--ace:print("add "..auraName.." with id "..i)
+			takenAuras[auraName] = true
+			i = i + 1
+		end
+	end
+	
+	for auraName, aura in pairs(auraTable) do
+		if not takenAuras[auraName] then
+			iterator[i] = auraName
+			--ace:print("add "..auraName)
+			i = i + 1
+		end
+	end
+	return iterator
+end
+
 function UpdateNameplateAuras(frame, unitName, healthbar)
 
 	local unit
@@ -143,8 +168,10 @@ function UpdateNameplateAuras(frame, unitName, healthbar)
 		local currentTime = GetTime()
 		local j, k = 1, 1
 		local numberOfAuras = tableLength(auraDB[unit])
-		for aura in pairs(auraDB[unit]) do
-		
+		local auraIterator = getIterator(auraDB[unit])
+		for _, aura in ipairs(auraIterator) do
+			--ace:print("here")
+			--ace:print(auraName)
 			-- set alignment of the auraslots, depends on the number of auras that have to be shown
 			if j == 1 then
 				-- move auraslots down if castbar isn't shown
@@ -176,7 +203,7 @@ function UpdateNameplateAuras(frame, unitName, healthbar)
 			end
 			
 			-- set color of border and show it
-			local borderColor = DebuffTypeColor[auraDB[unit][aura]["auraType"]]
+			local borderColor = DebuffTypeColor[auraDB[unit][aura]]
 			if borderColor then
 				frame.auras[j].border:SetVertexColor(borderColor.r, borderColor.g, borderColor.b)
 				frame.auras[j].border:Show()
@@ -229,7 +256,8 @@ function UpdateNameplateAuras(frame, unitName, healthbar)
 	else
 		-- reset and hide all auraslots and show a questionmark if necessary
 		for j = 1, 10 do		
-			if j == 1 and tyrPlates.inCombat and not frame.isPlayer and not frame.isFriendlyNPC and tyrPlates.auraCounter[unitName] and tyrPlates.auraCounter[unitName] > 0 then
+			--if j == 1 and tyrPlates.inCombat and not frame.isPlayer and not frame.isFriendlyNPC and tyrPlates.auraCounter[unitName] and tyrPlates.auraCounter[unitName] > 0 then
+			if j == 1 and tyrPlates.inCombat and not frame.isPlayer and not frame.isFriendlyNPC then
 				if healthbar:IsShown() then
 					frame.auras[j]:SetPoint("CENTER", frame, "CENTER", 0, 70)
 				else
@@ -467,7 +495,7 @@ function UpdateUnitAurasByauraType(unitIdentifier, unit, isfriendly, currentTime
 		-- if this aura wasn't found but should be shown, create a new entry
 		elseif isfriendly and spellDB.trackAura.friendly[auraName] or not isfriendly and (spellDB.trackAura.enemy[auraName] or (spellDB.trackAura.own[auraName] and timeLeft)) then
 			
-			local auraType = spellDB.trackAura.own[auraName] or spellDB.trackAura.enemy[auraName]
+			local auraType = spellDB.trackAura.own[auraName]["auraType"] or spellDB.trackAura.enemy[auraName]
 			
 			if timeLeft then
 				auraDB[unitIdentifier][auraName] = {startTime = currentTime, stacks = stackCount, duration = timeLeft, icon = auraIcon, auraType = auraType, isOwn = true}

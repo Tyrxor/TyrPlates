@@ -183,7 +183,7 @@ function auraDB:RemoveAura(destGUID, destName, spellId, aura, currentTime)
 	if auraDB[dest] and auraDB[dest][aura] then
 
 		-- if the aura influenced the cast speed, change it back
-		if spellDB.castSpeedChange[aura] then
+		if spellDB.castSpeedChange[aura] and castbarDB.castingSpeedDB[dest] then
 			castbarDB.castingSpeedDB[dest] = castbarDB.castingSpeedDB[dest] / spellDB.castSpeedChange[aura]
 		end	
 

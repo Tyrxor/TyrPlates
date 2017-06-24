@@ -2,12 +2,16 @@ local spellDB = tyrPlates.spellDB
 
 spellDB.trackAura = {}
 
---auras to be shown if your own
+-- aura priority list
+spellDB.trackPrio = {
+	[1] = "Vampiric Touch",
+	[2] = "Shadow Word: Pain",
+}
+
+-- auras to be shown if your own
 spellDB.trackAura.own = {
 	["Vampiric Touch"] = "Magic",
-	--[594] = "Magic",
 	["Shadow Word: Pain"] = "Magic",
-	["Sunder Armor"] = "none",
 }
 
 -- auras to be shown on enemies
