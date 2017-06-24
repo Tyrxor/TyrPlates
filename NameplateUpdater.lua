@@ -256,8 +256,7 @@ function UpdateNameplateAuras(frame, unitName, healthbar)
 	else
 		-- reset and hide all auraslots and show a questionmark if necessary
 		for j = 1, 10 do		
-			--if j == 1 and tyrPlates.inCombat and not frame.isPlayer and not frame.isFriendlyNPC and tyrPlates.auraCounter[unitName] and tyrPlates.auraCounter[unitName] > 0 then
-			if j == 1 and tyrPlates.inCombat and not frame.isPlayer and not frame.isFriendlyNPC then
+			if j == 1 and tyrPlates.inCombat and not frame.isPlayer and not frame.isFriendlyNPC and tyrPlates.auraCounter[unitName] and tyrPlates.auraCounter[unitName] > 0 then
 				if healthbar:IsShown() then
 					frame.auras[j]:SetPoint("CENTER", frame, "CENTER", 0, 70)
 				else
@@ -469,6 +468,16 @@ function UpdateUnitAuras(unitIdentifier, unit, isfriendly)
 			if spellDB.trackAura.own[aura] or spellDB.trackAura.enemy[aura] or currentTime - auraDB[unitIdentifier][aura]["startTime"] > 0.2 then
 				--ace:print("remove ".. aura .. " from "..unitIdentifier)
 				auraDB[unitIdentifier][aura] = nil
+				if not UnitIsPlayer(unit) then
+					local name = UnitName(unit)
+					if not tyrPlates.auraCounter[name] then 
+						tyrPlates.auraCounter[name] = 0
+					else
+						tyrPlates.auraCounter[name] = tyrPlates.auraCounter[name] - 1
+					end
+					if tyrPlates.auraCounter[name] < 0 then tyrPlates.auraCounter[name] = 0 end
+					ace:print(tyrPlates.auraCounter[name])
+				end
 			end
 		end
 	end
@@ -502,6 +511,14 @@ function UpdateUnitAurasByauraType(unitIdentifier, unit, isfriendly, currentTime
 			else
 				auraDB[unitIdentifier][auraName] = {startTime = 0, stacks = stackCount, duration = 0, icon = auraIcon, auraType = auraType, isOwn = false}
 			end
+			
+			if not UnitIsPlayer(unit) then
+			local name = UnitName(unit)
+				if not tyrPlates.auraCounter[name] then tyrPlates.auraCounter[name] = 0 end
+				tyrPlates.auraCounter[name] = tyrPlates.auraCounter[name] + 1
+				ace:print(tyrPlates.auraCounter[name])
+			end
+			
 			auraFound[auraName] = true			
 		end 
 		i = i + 1

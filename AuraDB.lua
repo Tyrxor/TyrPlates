@@ -1,10 +1,11 @@
 tyrPlates.auraDB = {}
-
+tyrPlates.auraCounter = {}
+tyrPlates.auraDB.castReduce = {}
 local auraDB = tyrPlates.auraDB
 local castbarDB = tyrPlates.castbarDB
 local spellDB = tyrPlates.spellDB
 local DRDB = {}
-tyrPlates.auraDB.castReduce = {}
+local auraCounter = tyrPlates.auraCounter
 local castReduce = tyrPlates.auraDB.castReduce
 
 --applys auras to players and NPCs
@@ -71,9 +72,16 @@ function auraDB:AddAura(srcGUID, destGUID, destName, destFlags, spellId, current
 		if not auraDB[dest] then auraDB[dest] = {} end	
 		if not auraDB[dest][auraName] then
 			auraDB[dest][auraName] = {startTime = currentTime, stacks = 1, duration = auraDuration, icon = AuraIcon, auraType = auraType, isOwn = isOwn}
+			
+			-- if npc, increase auraCounter for this unit
+			if tyrPlates:IsNPCGUID(destGUID) then
+				if not auraCounter[destName] then auraCounter[destName] = 0 end
+				auraCounter[destName] = auraCounter[destName] + 1
+				ace:print(auraCounter[destName])
+			end
 		else
-			auraDB[dest][auraName]["startTime"] = currentTime
-			auraDB[dest][auraName]["duration"] = auraDuration		
+				auraDB[dest][auraName]["startTime"] = currentTime
+				auraDB[dest][auraName]["duration"] = auraDuration		
 		end
 		--ace:print(auraName.." added")
 		
@@ -190,6 +198,17 @@ function auraDB:RemoveAura(destGUID, destName, spellId, aura, currentTime)
 		-- delete all auras with the given name unless you track it and it's not your own 
 		if auraDB[dest][aura]["isOwn"] or not tyrPlates:track("own", aura, spellId) then
 			auraDB[dest][aura] = nil
+			
+			-- if npc, decrease auraCounter for this unit
+			if tyrPlates:IsNPCGUID(destGUID) then
+				if not auraCounter[destName] then 
+					auraCounter[destName] = 0
+				else
+					auraCounter[destName] = auraCounter[destName] - 1
+				end
+				if auraCounter[destName] < 0 then auraCounter[destName] = 0 end
+				ace:print(auraCounter[destName])
+			end
 			--ace:print("removed "..aura)
 	
 			-- check if the removed aura has a diminishing return
@@ -215,8 +234,63 @@ function auraDB:RemoveAura(destGUID, destName, spellId, aura, currentTime)
 	end
 end
 
+function resetPetOrPlayer(destName)
+	-- reset auras
+	if auraDB[destName] then
+		for aura in pairs (auraDB[destName]) do
+			if not auraCounter[destName] then 
+				auraCounter[destName] = 0
+			else
+				auraCounter[destName] = auraCounter[destName] - 1
+			end
+			if auraCounter[destName] < 0 then auraCounter[destName] = 0 end
+			ace:print(auraCounter[destName])
+		end
+		tyrPlates:ClearTable(auraDB[destName])
+	end
+	
+	-- reset DR
+	if DRDB[destName] then
+		tyrPlates:ClearTable(DRDB[destName])
+	end
+	
+	-- reset castspeed
+	castbarDB.castingSpeedDB[destName] = 1
+end
+
+function resetNPC(destGUID, destName)
+	-- reset auras
+	if auraDB[destGUID] then
+		for aura in pairs (auraDB[destGUID]) do
+			if not auraCounter[destName] then 
+				auraCounter[destName] = 0
+			else
+				auraCounter[destName] = auraCounter[destName] - 1
+			end
+			if auraCounter[destName] < 0 then auraCounter[destName] = 0 end
+			ace:print(auraCounter[destName])
+		end
+		tyrPlates:ClearTable(auraDB[destGUID])
+	end
+	
+	-- reset DR
+	if DRDB[destGUID] then
+		tyrPlates:ClearTable(DRDB[destGUID])
+	end
+	
+	-- reset castspeed
+	castbarDB.castingSpeedDB[destGUID] = 1
+end
+
 -- removes all auras on a unit after it's death
 function auraDB:RemoveAllAuras(destGUID, destName)
+
+	if tyrPlates:IsPlayerOrPetGUID(destGUID) then
+		resetPetOrPlayer(destName)
+	else 
+		resetNPC(destGUID, destName)
+	end
+	--[[
 	if tyrPlates:IsPlayerOrPetGUID(destGUID) then
 		if auraDB[destName] then
 			tyrPlates:ClearTable(auraDB[destName])
@@ -234,6 +308,7 @@ function auraDB:RemoveAllAuras(destGUID, destName)
 			tyrPlates:ClearTable(DRDB[destGUID])
 		end
 	end  
+	]]
 end
 
 function auraDB:AddStacks(destGUID, aura, amount)
