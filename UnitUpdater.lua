@@ -9,7 +9,7 @@ tyrPlates.unitUpdater:RegisterEvent("PLAYER_TARGET_CHANGED")
 tyrPlates.unitUpdater:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
 tyrPlates.unitUpdater:RegisterEvent("PLAYER_FOCUS_CHANGED")
 tyrPlates.unitUpdater:RegisterEvent("UNIT_AURA")
---tyrPlates.target:RegisterEvent("UNIT_TARGET")
+tyrPlates.unitUpdater:RegisterEvent("UNIT_TARGET")
 tyrPlates.unitUpdater:SetScript("OnEvent", function()
 
 	local unit
@@ -25,13 +25,18 @@ tyrPlates.unitUpdater:SetScript("OnEvent", function()
 	elseif event == "UNIT_AURA" then
 		unit = arg1
 		if unit == "player" then return end
+		
+	elseif event == "UNIT_TARGET" then
+		unit = arg1
+		if unit == "player" then return end
+		unit = unit.."target"
 	end
 
 	local unitName = UnitName(unit)
 	local unitGUID = UnitGUID(unit)
 	local isFriendly = UnitIsFriend("player", unit)
 	
-	if not unitName or not unitGUID then return end --can happen, as reseting your target also trigger the "PLAYER_TARGET_CHANGED" event
+	if not unitName then return end --can happen, as reseting your target also trigger the "PLAYER_TARGET_CHANGED" event
 	
 	local dest
 	if tyrPlates:IsPlayerGUID(unitGUID) then
