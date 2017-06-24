@@ -14,6 +14,7 @@ HealthDiffDB.lua
 CastbarDB.lua
 AuraDB.lua
 Combatlog.lua
+UnitUpdater.lua
 Nameplate.lua
 NameplateUpdater.lua
 Config.lua
