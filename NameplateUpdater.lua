@@ -203,7 +203,7 @@ function UpdateNameplateAuras(frame, unitName, healthbar)
 			end
 			
 			-- set color of border and show it
-			local borderColor = DebuffTypeColor[auraDB[unit][aura]]
+			local borderColor = DebuffTypeColor[auraDB[unit][aura]["auraType"]]
 			if borderColor then
 				frame.auras[j].border:SetVertexColor(borderColor.r, borderColor.g, borderColor.b)
 				frame.auras[j].border:Show()
@@ -504,7 +504,7 @@ function UpdateUnitAurasByauraType(unitIdentifier, unit, isfriendly, currentTime
 		-- if this aura wasn't found but should be shown, create a new entry
 		elseif isfriendly and spellDB.trackAura.friendly[auraName] or not isfriendly and (spellDB.trackAura.enemy[auraName] or (spellDB.trackAura.own[auraName] and timeLeft)) then
 			
-			local auraType = spellDB.trackAura.own[auraName]["auraType"] or spellDB.trackAura.enemy[auraName]
+			local auraType = spellDB.trackAura.own[auraName] or spellDB.trackAura.enemy[auraName] or spellDB.trackAura.friendly[auraName]
 			
 			if timeLeft then
 				auraDB[unitIdentifier][auraName] = {startTime = currentTime, stacks = stackCount, duration = timeLeft, icon = auraIcon, auraType = auraType, isOwn = true}
