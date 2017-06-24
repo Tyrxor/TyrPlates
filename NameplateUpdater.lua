@@ -36,7 +36,7 @@ function nameplate:UpdateNameplate()
 		local targetGUID = UnitGUID(unit)
 		nameplate.nameplateByGUID[this] = targetGUID	-- set guid of the nameplate
 		
-		if tyrPlates:IsPlayerOrPetGUID(targetGUID) then
+		if tyrPlates:IsPlayerGUID(targetGUID) then
 			target = targetName
 		else
 			target = targetGUID
@@ -90,7 +90,7 @@ function nameplate:UpdateNameplate()
   
 	if MouseIsOver(this, 0, 0, 0, 0) then --should also work if healthbar is hidden
 		local mouseoverGUID = UnitGUID("mouseover")
-		if mouseoverGUID and not tyrPlates:IsNPCGUID(mouseoverGUID) then
+		if mouseoverGUID then
 			nameplate.nameplateByGUID[this] = mouseoverGUID
 		end
 	end
@@ -579,13 +579,13 @@ nameplate.unitUpdater:SetScript("OnEvent", function()
 	end
 
 	local unitName = UnitName(unit)
-	local unitGuid = UnitGUID(unit)
+	local unitGUID = UnitGUID(unit)
 	local isFriendly = UnitIsFriend("player", unit)
 	
-	if not unitName or not unitGuid then return end --can happen, as reseting your target also trigger the "PLAYER_TARGET_CHANGED" event
+	if not unitName or not unitGUID then return end --can happen, as reseting your target also trigger the "PLAYER_TARGET_CHANGED" event
 	
 	local dest
-	if tyrPlates:IsPlayerOrPetGUID(unitGuid) then
+	if tyrPlates:IsPlayerGUID(unitGUID) then
 		dest = unitName
 		-- if player, add name and class to the classDB
 		if UnitIsPlayer(unit) and not TyrPlatesDB.class[unitName] then
@@ -593,7 +593,7 @@ nameplate.unitUpdater:SetScript("OnEvent", function()
 			TyrPlatesDB.class[unitName] = class
 		end	
 	else
-		dest = unitGuid
+		dest = unitGUID
 	end
 	
 	UpdateUnitAuras(dest, unit, isFriendly)
@@ -608,14 +608,14 @@ nameplate.unitCastUpdater:SetScript("OnEvent", function()
 
 	local unit = arg1
 	local unitName = UnitName(unit)
-	local unitGuid = UnitGUID(unit)
+	local unitGUID = UnitGUID(unit)
   
 	--if not unitName or not unitGuid then return end
   
-	if tyrPlates:IsPlayerOrPetGUID(unitGuid) then
+	if tyrPlates:IsPlayerGUID(unitGUID) then
 		UpdateUnitCast(unitName, unit)
 	else
-		UpdateUnitCast(unitGuid, unit)
+		UpdateUnitCast(unitGUID, unit)
 	end 
 end)
 
