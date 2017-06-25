@@ -5,7 +5,7 @@ local auraDB = tyrPlates.auraDB
 local spellDB = tyrPlates.spellDB
 
 --update casts and auras on units (target/focus/group etc.) after cahnging target, focus or mouseover
-tyrPlates.unitUpdater:RegisterEvent("PLAYER_TARGET_CHANGED")
+--tyrPlates.unitUpdater:RegisterEvent("PLAYER_TARGET_CHANGED")
 tyrPlates.unitUpdater:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
 tyrPlates.unitUpdater:RegisterEvent("PLAYER_FOCUS_CHANGED")
 tyrPlates.unitUpdater:RegisterEvent("UNIT_AURA")
@@ -13,9 +13,13 @@ tyrPlates.unitUpdater:RegisterEvent("UNIT_TARGET")
 tyrPlates.unitUpdater:SetScript("OnEvent", function()
 
 	local unit
-	if event == "PLAYER_TARGET_CHANGED" then
-		unit = "target"
-		
+	if event == "UNIT_TARGET" then
+		unit = arg1
+		if unit == "player" then
+			unit = "target"
+		else
+			unit = unit.."target"
+		end
 	elseif event == "UPDATE_MOUSEOVER_UNIT" then
 		unit = "mouseover"
 		
@@ -25,18 +29,17 @@ tyrPlates.unitUpdater:SetScript("OnEvent", function()
 	elseif event == "UNIT_AURA" then
 		unit = arg1
 		if unit == "player" then return end
-		
-	elseif event == "UNIT_TARGET" then
-		unit = arg1
-		if unit == "player" then return end
-		unit = unit.."target"
 	end
+	
+	ace:print(unit)
 
+	if not UnitExists(unit) then return end
+	
+	ace:print("do some")
+	
 	local unitName = UnitName(unit)
 	local unitGUID = UnitGUID(unit)
 	local isFriendly = UnitIsFriend("player", unit)
-	
-	if not unitName then return end --can happen, as reseting your target also trigger the "PLAYER_TARGET_CHANGED" event
 	
 	local dest
 	if tyrPlates:IsPlayerGUID(unitGUID) then
